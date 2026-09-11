@@ -158,6 +158,12 @@ export const Hexagon = (p) => (
   </Svg>
 );
 
+export const ArrowLeft = (p) => (
+  <Svg {...p}>
+    <path d="M19 12H5M12 19l-7-7 7-7" />
+  </Svg>
+);
+
 export const Check = (p) => (
   <Svg {...p}>
     <path d="M20 6L9 17l-5-5" />

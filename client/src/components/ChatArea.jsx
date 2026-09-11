@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Volume2, Users, Menu } from "./Icons.jsx";
+import { Volume2, Users } from "./Icons.jsx";
 import Message from "./Message.jsx";
 import MessageInput from "./MessageInput.jsx";
 
@@ -23,7 +23,7 @@ export default function ChatArea({
   showMemberToggle,
   membersOpen,
   onToggleMembers,
-  onToggleSidebar,
+  headerLeft,
 }) {
   const bottomRef = useRef(null);
 
@@ -36,14 +36,7 @@ export default function ChatArea({
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-base-750">
       <div className="h-12 flex items-center gap-2 px-3 sm:px-4 border-b border-base-900/60 shadow-sm shrink-0">
-        <button
-          onClick={onToggleSidebar}
-          title="Kanallar"
-          aria-label="Kanallari goster"
-          className="md:hidden w-8 h-8 flex items-center justify-center text-gray-400 hover:text-ink shrink-0"
-        >
-          <Menu size={20} />
-        </button>
+        {headerLeft}
         {type === "VOICE" ? (
           <Volume2 size={18} className="text-gray-500 shrink-0" />
         ) : (

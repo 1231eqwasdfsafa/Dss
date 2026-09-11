@@ -3,13 +3,19 @@ import { useAuthStore } from "../store/authStore";
 import { useAppStore } from "../store/appStore";
 import { getSocket } from "../lib/socket";
 import { DEMO_MODE } from "../lib/demo";
-import { Menu } from "../components/Icons.jsx";
+import { ArrowLeft } from "../components/Icons.jsx";
+import useIsMobile from "../hooks/useIsMobile";
 
 import ServerRail from "../components/ServerRail.jsx";
 import ChannelSidebar from "../components/ChannelSidebar.jsx";
+import ServerChannelList from "../components/ServerChannelList.jsx";
+import DmList from "../components/DmList.jsx";
 import ChatArea from "../components/ChatArea.jsx";
 import MemberList from "../components/MemberList.jsx";
 import DiscoverPage from "../components/DiscoverPage.jsx";
+import MobileTabBar from "../components/MobileTabBar.jsx";
+import MobileServerList from "../components/MobileServerList.jsx";
+import MobileAccountScreen from "../components/MobileAccountScreen.jsx";
 
 import CreateServerModal from "../components/modals/CreateServerModal.jsx";
 import JoinServerModal from "../components/modals/JoinServerModal.jsx";
@@ -22,7 +28,8 @@ import ReportModal from "../components/modals/ReportModal.jsx";
 import ReportsModal from "../components/modals/ReportsModal.jsx";
 
 export default function MainLayout() {
-  const { user } = useAuthStore();
+  const { user, setPresence: setOwnPresence } = useAuthStore();
+  const isMobile = useIsMobile();
   const {
     servers,
     activeServerId,
@@ -68,15 +75,21 @@ export default function MainLayout() {
 
   const [modal, setModal] = useState(null); // 'createServer' | 'joinServer' | 'createChannel' | 'invite' | 'newDm' | 'settings' | 'createPoll' | 'reports'
   const [membersOpen, setMembersOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile-only channel list drawer
   const [reportTarget, setReportTarget] = useState(null); // messageId being reported
+
+  // Mobile-only navigation stack: which tab's root list is showing, and how
+  // deep the drill-down goes (list -> channel list -> chat), independent of
+  // the desktop layout which shows everything at once.
+  const [mobileTab, setMobileTab] = useState("servers"); // 'dm' | 'servers' | 'discover' | 'account'
+  const [mobileScreen, setMobileScreen] = useState("tabs"); // 'tabs' | 'channelList' | 'chat'
 
   useEffect(() => {
     fetchServers();
     fetchDms();
   }, []);
 
-  // Auto-select first server + channel once loaded
+  // Auto-select first server + channel once loaded (desktop shows it right
+  // away; mobile just has it ready for when the user drills in)
   useEffect(() => {
     if (!activeServerId && !activeDmId && servers.length > 0) {
       const first = servers[0];
@@ -95,7 +108,10 @@ export default function MainLayout() {
     const onDelete = ({ messageId }) => {
       removeMessageFromStore(messageId, activeChannelId, activeDmId);
     };
-    const onPresence = ({ userId, status }) => setPresence(userId, status);
+    const onPresence = ({ userId, status }) => {
+      setPresence(userId, status);
+      setOwnPresence(userId, status);
+    };
     const onMemberJoined = ({ serverId, member }) => addMemberToStore(serverId, member);
     const onTypingStart = ({ userId, username, channelId, dmChannelId }) => {
       setTyping(channelId || dmChannelId, userId, username);
@@ -205,11 +221,16 @@ export default function MainLayout() {
     if (!confirmed) return;
     if (isOwner) await deleteServer(activeServer.id);
     else await leaveServer(activeServer.id);
+    setMobileScreen("tabs");
   }
 
   async function handleStartDm(userInfo) {
     const dm = await startDm(userInfo);
     selectDm(dm.id);
+    if (isMobile) {
+      setMobileTab("dm");
+      setMobileScreen("chat");
+    }
   }
 
   function handleReportMessage(messageId) {
@@ -219,6 +240,142 @@ export default function MainLayout() {
   async function handleCreatePoll(question, options) {
     if (!activeChannel) return;
     await createPoll(activeChannel.id, question, options);
+  }
+
+  const sharedModals = (
+    <>
+      {modal === "createPoll" && activeChannel && (
+        <CreatePollModal onClose={() => setModal(null)} onCreate={(question, options) => handleCreatePoll(question, options)} />
+      )}
+      {modal === "reports" && activeServer && <ReportsModal serverId={activeServer.id} onClose={() => setModal(null)} />}
+      {modal === "createServer" && <CreateServerModal onClose={() => setModal(null)} onCreate={createServer} />}
+      {modal === "joinServer" && <JoinServerModal onClose={() => setModal(null)} onJoin={joinServer} />}
+      {modal === "createChannel" && activeServer && (
+        <CreateChannelModal onClose={() => setModal(null)} onCreate={(name, type) => createChannel(activeServer.id, name, type)} />
+      )}
+      {modal === "invite" && activeServer && <InviteModal server={activeServer} onClose={() => setModal(null)} />}
+      {modal === "newDm" && <NewDmModal onClose={() => setModal(null)} onStart={handleStartDm} />}
+      {modal === "settings" && <SettingsModal onClose={() => setModal(null)} />}
+      {reportTarget && (
+        <ReportModal
+          onClose={() => setReportTarget(null)}
+          onSubmit={async (reason) => {
+            await reportMessage(reportTarget, reason);
+            setReportTarget(null);
+          }}
+        />
+      )}
+    </>
+  );
+
+  const chatProps = {
+    currentUserId: user.id,
+    onEdit: handleEditMessage,
+    onDelete: handleDeleteMessage,
+    onReact: toggleReaction,
+    onReport: handleReportMessage,
+    onVotePoll: votePoll,
+    onSend: sendMessage,
+    onTypingStart: typingStart,
+    onTypingStop: typingStop,
+  };
+
+  if (isMobile) {
+    return (
+      <div className="h-screen w-screen flex flex-col bg-base-900 overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col">
+          {mobileScreen === "tabs" && mobileTab === "dm" && (
+            <DmList
+              dms={dms}
+              activeDmId={activeDmId}
+              onSelectDm={(id) => { selectDm(id); setMobileScreen("chat"); }}
+              onNewDm={() => setModal("newDm")}
+              presence={presence}
+            />
+          )}
+
+          {mobileScreen === "tabs" && mobileTab === "servers" && (
+            <MobileServerList
+              servers={servers}
+              onSelect={(id) => { selectServer(id); setMobileScreen("channelList"); }}
+              onCreate={() => setModal("createServer")}
+              onJoin={() => setModal("joinServer")}
+            />
+          )}
+
+          {mobileScreen === "tabs" && mobileTab === "discover" && (
+            <DiscoverPage
+              onJoined={(server) => {
+                selectServer(server.id);
+                setMobileTab("servers");
+                setMobileScreen("channelList");
+              }}
+            />
+          )}
+
+          {mobileScreen === "tabs" && mobileTab === "account" && <MobileAccountScreen onOpenSettings={() => setModal("settings")} />}
+
+          {mobileScreen === "channelList" && activeServer && (
+            <ServerChannelList
+              server={activeServer}
+              activeChannelId={activeChannelId}
+              onSelectChannel={(id) => { selectChannel(id); setMobileScreen("chat"); }}
+              onCreateChannel={() => setModal("createChannel")}
+              onOpenInvite={() => setModal("invite")}
+              onOpenReports={() => setModal("reports")}
+              onLeaveOrDelete={handleLeaveOrDelete}
+              headerLeft={<BackBtn onClick={() => setMobileScreen("tabs")} />}
+            />
+          )}
+
+          {mobileScreen === "chat" && mobileTab === "servers" && activeChannel && (
+            <div className="relative flex-1 flex min-w-0">
+              <ChatArea
+                {...chatProps}
+                title={activeChannel.name}
+                type={activeChannel.type}
+                messages={messagesByChannel[activeChannelId] || []}
+                canModerate={canModerate}
+                typingUsers={typing[activeChannelId]}
+                onOpenPoll={activeChannel.type === "TEXT" ? () => setModal("createPoll") : null}
+                showMemberToggle
+                membersOpen={membersOpen}
+                onToggleMembers={() => setMembersOpen((v) => !v)}
+                headerLeft={<BackBtn onClick={() => setMobileScreen("channelList")} />}
+              />
+              {activeServer && (
+                <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onStartDm={handleStartDm} />
+              )}
+            </div>
+          )}
+
+          {mobileScreen === "chat" && mobileTab === "dm" && activeDm && (
+            <ChatArea
+              {...chatProps}
+              title={activeDm.user?.username || "Bilinmeyen"}
+              type="TEXT"
+              messages={messagesByDm[activeDmId] || []}
+              canModerate={false}
+              typingUsers={typing[activeDmId]}
+              emptyHint="Sohbete baslamak icin bir mesaj gonder."
+              headerLeft={<BackBtn onClick={() => setMobileScreen("tabs")} />}
+            />
+          )}
+        </div>
+
+        {mobileScreen === "tabs" && (
+          <MobileTabBar
+            active={mobileTab}
+            onChange={(tab) => {
+              setMobileTab(tab);
+              setMobileScreen("tabs");
+            }}
+          />
+        )}
+
+        {sharedModals}
+      </div>
+    );
   }
 
   return (
@@ -244,15 +401,12 @@ export default function MainLayout() {
           onCreateChannel={() => setModal("createChannel")}
           onOpenInvite={() => setModal("invite")}
           onLeaveOrDelete={handleLeaveOrDelete}
-          currentUserId={user.id}
           dms={dms}
           activeDmId={activeDmId}
           onSelectDm={selectDm}
           onNewDm={() => setModal("newDm")}
           presence={presence}
           onOpenReports={() => setModal("reports")}
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
         />
       )}
 
@@ -263,50 +417,32 @@ export default function MainLayout() {
           {view === "server" ? (
             activeChannel ? (
               <ChatArea
+                {...chatProps}
                 title={activeChannel.name}
                 type={activeChannel.type}
                 messages={messagesByChannel[activeChannelId] || []}
-                currentUserId={user.id}
                 canModerate={canModerate}
-                onSend={sendMessage}
-                onEdit={handleEditMessage}
-                onDelete={handleDeleteMessage}
-                onReact={toggleReaction}
-                onReport={handleReportMessage}
-                onVotePoll={votePoll}
-                onTypingStart={typingStart}
-                onTypingStop={typingStop}
                 typingUsers={typing[activeChannelId]}
                 onOpenPoll={activeChannel.type === "TEXT" ? () => setModal("createPoll") : null}
                 showMemberToggle
                 membersOpen={membersOpen}
                 onToggleMembers={() => setMembersOpen((v) => !v)}
-                onToggleSidebar={() => setSidebarOpen((v) => !v)}
               />
             ) : (
-              <EmptyState text={activeServer ? "Bir kanal sec" : "Baslamak icin bir sunucu olustur ya da katil"} onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+              <EmptyState text={activeServer ? "Bir kanal sec" : "Baslamak icin bir sunucu olustur ya da katil"} />
             )
           ) : activeDm ? (
             <ChatArea
+              {...chatProps}
               title={activeDm.user?.username || "Bilinmeyen"}
               type="TEXT"
               messages={messagesByDm[activeDmId] || []}
-              currentUserId={user.id}
               canModerate={false}
-              onSend={sendMessage}
-              onEdit={handleEditMessage}
-              onDelete={handleDeleteMessage}
-              onReact={toggleReaction}
-              onReport={handleReportMessage}
-              onVotePoll={votePoll}
-              onTypingStart={typingStart}
-              onTypingStop={typingStop}
               typingUsers={typing[activeDmId]}
               emptyHint="Sohbete baslamak icin bir mesaj gonder."
-              onToggleSidebar={() => setSidebarOpen((v) => !v)}
             />
           ) : (
-            <EmptyState text="Sohbete baslamak icin bir arkadas sec" onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+            <EmptyState text="Sohbete baslamak icin bir arkadas sec" />
           )}
 
           {view === "server" && activeServer && (
@@ -315,43 +451,23 @@ export default function MainLayout() {
         </div>
       )}
 
-      {modal === "createPoll" && activeChannel && (
-        <CreatePollModal onClose={() => setModal(null)} onCreate={(question, options) => handleCreatePoll(question, options)} />
-      )}
-      {modal === "reports" && activeServer && <ReportsModal serverId={activeServer.id} onClose={() => setModal(null)} />}
-
-      {modal === "createServer" && <CreateServerModal onClose={() => setModal(null)} onCreate={createServer} />}
-      {modal === "joinServer" && <JoinServerModal onClose={() => setModal(null)} onJoin={joinServer} />}
-      {modal === "createChannel" && activeServer && (
-        <CreateChannelModal onClose={() => setModal(null)} onCreate={(name, type) => createChannel(activeServer.id, name, type)} />
-      )}
-      {modal === "invite" && activeServer && <InviteModal server={activeServer} onClose={() => setModal(null)} />}
-      {modal === "newDm" && <NewDmModal onClose={() => setModal(null)} onStart={handleStartDm} />}
-      {modal === "settings" && <SettingsModal onClose={() => setModal(null)} />}
-      {reportTarget && (
-        <ReportModal
-          onClose={() => setReportTarget(null)}
-          onSubmit={async (reason) => {
-            await reportMessage(reportTarget, reason);
-            setReportTarget(null);
-          }}
-        />
-      )}
+      {sharedModals}
     </div>
   );
 }
 
-function EmptyState({ text, onToggleSidebar }) {
+function BackBtn({ onClick }) {
   return (
-    <div className="flex-1 flex flex-col bg-base-750">
-      <div className="h-12 flex items-center px-3 border-b border-base-900/60 shrink-0 md:hidden">
-        <button onClick={onToggleSidebar} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-ink">
-          <Menu size={20} />
-        </button>
-      </div>
-      <div className="flex-1 flex items-center justify-center text-gray-500 px-6 text-center">
-        <p>{text}</p>
-      </div>
+    <button onClick={onClick} className="w-8 h-8 -ml-1 flex items-center justify-center text-gray-400 hover:text-ink shrink-0">
+      <ArrowLeft size={20} />
+    </button>
+  );
+}
+
+function EmptyState({ text }) {
+  return (
+    <div className="flex-1 flex items-center justify-center text-gray-500 bg-base-750 px-6 text-center">
+      <p>{text}</p>
     </div>
   );
 }
