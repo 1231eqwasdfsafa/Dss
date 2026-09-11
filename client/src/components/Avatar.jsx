@@ -5,20 +5,20 @@ const STATUS_COLOR = {
   OFFLINE: "bg-gray-500",
 };
 
-export default function Avatar({ username, color, status, size = 40, showStatus = true }) {
+export default function Avatar({ username, color, status, size = 40, showStatus = true, square = false }) {
   const letter = username?.[0]?.toUpperCase() || "?";
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
-        className="rounded-full flex items-center justify-center font-bold text-ink select-none"
+        className={`flex items-center justify-center font-bold text-ink select-none ${square ? "rounded-lg" : "rounded-full"}`}
         style={{ width: size, height: size, backgroundColor: color || "#5865F2", fontSize: size * 0.42 }}
       >
         {letter}
       </div>
       {showStatus && status && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full border-2 border-base-800 ${STATUS_COLOR[status] || "bg-gray-500"}`}
-          style={{ width: size * 0.32, height: size * 0.32 }}
+          className={`absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-base-900 ${STATUS_COLOR[status] || "bg-gray-500"}`}
+          style={{ width: size * 0.34, height: size * 0.34 }}
         />
       )}
     </div>

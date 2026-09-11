@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { Hash, Volume2, ChevronDown, Plus, UserPlus, Trash, LogOut, Flag } from "./Icons.jsx";
+import { Volume2, ChevronDown, Plus, UserPlus, Trash, LogOut, Flag } from "./Icons.jsx";
 import Avatar from "./Avatar.jsx";
-import UserPanel from "./UserPanel.jsx";
 
 export default function ChannelSidebar({
   view,
   server,
   activeChannelId,
   onSelectChannel,
-  onOpenSettings,
   onCreateChannel,
   onOpenInvite,
   onOpenReports,
@@ -57,7 +55,6 @@ export default function ChannelSidebar({
             </button>
           ))}
         </div>
-        <UserPanel onOpenSettings={onOpenSettings} />
       </>
     );
   } else if (!server) {
@@ -107,7 +104,7 @@ export default function ChannelSidebar({
               {textChannels.map((ch) => (
                 <ChannelItem
                   key={ch.id}
-                  icon={<Hash size={18} />}
+                  icon={<span className="mono text-[13px]">/</span>}
                   active={activeChannelId === ch.id}
                   onClick={() => { onSelectChannel(ch.id); onClose?.(); }}
                 >
@@ -133,7 +130,6 @@ export default function ChannelSidebar({
           )}
         </div>
 
-        <UserPanel onOpenSettings={onOpenSettings} />
       </>
     );
   }
@@ -149,10 +145,10 @@ export default function ChannelSidebar({
         onClick={onClose}
       />
       <div
-        className={`fixed md:static inset-y-0 left-[72px] md:left-auto right-8 sm:right-auto md:right-auto z-40 md:z-auto
-          w-auto sm:w-60 md:w-60 bg-base-800 flex flex-col shrink-0 border-r border-base-900/60
+        className={`fixed md:static inset-y-0 left-16 md:left-auto z-40 md:z-auto
+          w-[calc(100vw-4rem)] sm:w-60 md:w-60 bg-base-800 flex flex-col shrink-0 border-r border-base-900/60
           transform transition-transform duration-200 ease-out md:translate-x-0
-          ${open ? "translate-x-0" : "-translate-x-[calc(100%+72px)] md:translate-x-0"}`}
+          ${open ? "translate-x-0" : "-translate-x-[calc(100%+4rem)] md:translate-x-0"}`}
       >
         {content}
       </div>
@@ -178,7 +174,7 @@ function ChannelItem({ children, icon, active, onClick }) {
       }`}
     >
       <span className="text-gray-500">{icon}</span>
-      <span className="truncate">{children}</span>
+      <span className="truncate mono">{children}</span>
     </button>
   );
 }

@@ -232,6 +232,7 @@ export default function MainLayout() {
         onCreate={() => setModal("createServer")}
         onJoin={() => setModal("joinServer")}
         onDiscover={selectDiscover}
+        onOpenSettings={() => setModal("settings")}
       />
 
       {view !== "discover" && (
@@ -240,7 +241,6 @@ export default function MainLayout() {
           server={activeServer}
           activeChannelId={activeChannelId}
           onSelectChannel={selectChannel}
-          onOpenSettings={() => setModal("settings")}
           onCreateChannel={() => setModal("createChannel")}
           onOpenInvite={() => setModal("invite")}
           onLeaveOrDelete={handleLeaveOrDelete}

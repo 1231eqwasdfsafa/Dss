@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Hash, Volume2, Users, Menu } from "./Icons.jsx";
+import { Volume2, Users, Menu } from "./Icons.jsx";
 import Message from "./Message.jsx";
 import MessageInput from "./MessageInput.jsx";
 
@@ -44,7 +44,11 @@ export default function ChatArea({
         >
           <Menu size={20} />
         </button>
-        {type === "VOICE" ? <Volume2 size={20} className="text-gray-400 shrink-0" /> : <Hash size={20} className="text-gray-400 shrink-0" />}
+        {type === "VOICE" ? (
+          <Volume2 size={18} className="text-gray-500 shrink-0" />
+        ) : (
+          <span className="mono text-gray-500 shrink-0">/</span>
+        )}
         <span className="font-bold text-ink truncate flex-1">{title}</span>
         {showMemberToggle && (
           <button

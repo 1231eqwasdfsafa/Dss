@@ -25,10 +25,10 @@ export default function Message({ message, isOwn, canModerate, currentUserId, on
         setHover(false);
         setShowEmojiPicker(false);
       }}
-      className={`group relative flex gap-3 px-4 py-0.5 hover:bg-white/[0.02] ${grouped ? "mt-0" : "mt-3"}`}
+      className={`group relative flex gap-2.5 px-4 py-0.5 hover:bg-white/[0.02] ${grouped ? "mt-0" : "mt-2.5"}`}
     >
-      <div className="w-10 shrink-0">
-        {!grouped && <Avatar username={message.author.username} color={message.author.avatarColor} size={40} showStatus={false} />}
+      <div className="w-9 shrink-0">
+        {!grouped && <Avatar username={message.author.username} color={message.author.avatarColor} size={34} showStatus={false} />}
       </div>
 
       <div className="flex-1 min-w-0">

@@ -1,4 +1,5 @@
 import { Plus, Compass, MessageCircle, UserPlus } from "./Icons.jsx";
+import AccountMenu from "./AccountMenu.jsx";
 
 export default function ServerRail({
   servers,
@@ -9,38 +10,44 @@ export default function ServerRail({
   onCreate,
   onJoin,
   onDiscover,
+  onOpenSettings,
 }) {
   return (
-    <div className="w-[72px] bg-base-900 flex flex-col items-center py-3 gap-2 shrink-0 overflow-y-auto scrollbar-none">
-      <RailItem active={view === "dm"} onClick={onSelectHome} label="Direkt Mesajlar" pill>
-        <MessageCircle size={22} />
+    <div className="w-[64px] bg-base-900 flex flex-col items-center py-3 gap-1.5 shrink-0 overflow-y-auto scrollbar-none">
+      <RailItem active={view === "dm"} onClick={onSelectHome} label="Direkt Mesajlar">
+        <MessageCircle size={19} />
       </RailItem>
 
-      <div className="w-8 h-[2px] bg-base-700 rounded-full my-1" />
+      <div className="w-6 h-px bg-base-700 my-1.5" />
 
-      {servers.map((server) => (
-        <RailItem
-          key={server.id}
-          active={view === "server" && activeServerId === server.id}
-          onClick={() => onSelectServer(server.id)}
-          label={server.name}
-        >
-          <span className="text-sm font-bold">{initials(server.name)}</span>
+      <div className="flex-1 w-full flex flex-col items-center gap-1.5 overflow-y-auto scrollbar-none">
+        {servers.map((server) => (
+          <RailItem
+            key={server.id}
+            active={view === "server" && activeServerId === server.id}
+            onClick={() => onSelectServer(server.id)}
+            label={server.name}
+          >
+            <span className="text-[13px] font-bold">{initials(server.name)}</span>
+          </RailItem>
+        ))}
+
+        <RailItem onClick={onCreate} label="Sunucu olustur" variant="ghost">
+          <Plus size={18} />
         </RailItem>
-      ))}
+        <RailItem onClick={onJoin} label="Davet koduyla katil" variant="ghost">
+          <UserPlus size={18} />
+        </RailItem>
 
-      <RailItem onClick={onCreate} label="Sunucu olustur" variant="add">
-        <Plus size={20} />
-      </RailItem>
-      <RailItem onClick={onJoin} label="Davet koduyla katil" variant="add">
-        <UserPlus size={20} />
-      </RailItem>
+        <div className="w-6 h-px bg-base-700 my-1.5" />
 
-      <div className="w-8 h-[2px] bg-base-700 rounded-full my-1" />
+        <RailItem active={view === "discover"} onClick={onDiscover} label="Kesfet" variant="ghost">
+          <Compass size={18} />
+        </RailItem>
+      </div>
 
-      <RailItem active={view === "discover"} onClick={onDiscover} label="Kesfet" variant="discover">
-        <Compass size={20} />
-      </RailItem>
+      <div className="w-6 h-px bg-base-700 my-1.5" />
+      <AccountMenu onOpenSettings={onOpenSettings} />
     </div>
   );
 }
@@ -55,29 +62,23 @@ function initials(name) {
     .toUpperCase();
 }
 
-function RailItem({ children, active, onClick, label, variant, pill }) {
+function RailItem({ children, active, onClick, label, variant }) {
   return (
-    <div className="relative group flex items-center justify-center w-full">
-      <div
-        className={`absolute left-0 bg-teal rounded-r-full transition-all ${
-          active ? "h-10 w-1" : "h-2 w-1 opacity-0 group-hover:opacity-100 group-hover:h-5"
-        }`}
-      />
+    <div className="relative flex items-center justify-center w-full">
       <button
         onClick={onClick}
         title={label}
-        className={`w-12 h-12 flex items-center justify-center transition-all duration-150 text-ink
-          ${active ? "rounded-2xl" : "rounded-full hover:rounded-2xl"}
-          ${
-            variant === "add" || variant === "discover"
-              ? "bg-base-800 text-gray-400 hover:bg-teal/15 hover:text-teal"
-              : active
-              ? "bg-base-700 ring-1 ring-teal/40"
-              : "bg-base-800 hover:bg-base-700"
-          }`}
+        className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-ink ${
+          variant === "ghost"
+            ? "text-gray-500 hover:bg-base-800 hover:text-teal"
+            : active
+            ? "bg-base-700 ring-1 ring-inset ring-teal/50"
+            : "bg-base-800 hover:bg-base-700"
+        }`}
       >
         {children}
       </button>
+      {active && <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-teal" />}
     </div>
   );
 }
