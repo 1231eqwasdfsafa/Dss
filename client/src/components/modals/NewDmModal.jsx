@@ -41,7 +41,7 @@ export default function NewDmModal({ onClose, onStart }) {
             onClick={() => handleStart(u)}
             className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-base-750 text-left"
           >
-            <Avatar username={u.username} color={u.avatarColor} status={u.status} size={32} />
+            <Avatar username={u.username} color={u.avatarColor} url={u.avatarUrl} status={u.status} size={32} />
             <span className="text-sm font-medium text-gray-200">
               {u.username}
               <span className="text-gray-500 mono">#{u.discriminator}</span>

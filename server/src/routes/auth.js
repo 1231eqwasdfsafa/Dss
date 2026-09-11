@@ -15,8 +15,17 @@ function publicUser(user) {
     discriminator: user.discriminator,
     email: user.email,
     avatarColor: user.avatarColor,
+    avatarUrl: user.avatarUrl,
+    bannerUrl: user.bannerUrl,
+    bannerColor: user.bannerColor,
+    bio: user.bio,
+    pronouns: user.pronouns,
+    youtubeUrl: user.youtubeUrl,
+    spotifyUrl: user.spotifyUrl,
     status: user.status,
     customStatus: user.customStatus,
+    isBot: user.isBot,
+    createdAt: user.createdAt,
   };
 }
 
@@ -87,14 +96,30 @@ router.get("/me", requireAuth, async (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
+const URL_FIELD_MAX = 300;
+
+function cleanUrl(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > URL_FIELD_MAX) return trimmed.slice(0, URL_FIELD_MAX);
+  return trimmed;
+}
+
 router.patch("/me", requireAuth, async (req, res) => {
-  const { customStatus, status, avatarColor } = req.body;
+  const { customStatus, status, avatarColor, avatarUrl, bannerUrl, bannerColor, bio, pronouns, youtubeUrl, spotifyUrl } = req.body;
   const user = await prisma.user.update({
     where: { id: req.userId },
     data: {
-      ...(customStatus !== undefined ? { customStatus } : {}),
+      ...(customStatus !== undefined ? { customStatus: customStatus?.trim().slice(0, 80) || null } : {}),
       ...(status ? { status } : {}),
       ...(avatarColor ? { avatarColor } : {}),
+      ...(avatarUrl !== undefined ? { avatarUrl: cleanUrl(avatarUrl || "") } : {}),
+      ...(bannerUrl !== undefined ? { bannerUrl: cleanUrl(bannerUrl || "") } : {}),
+      ...(bannerColor ? { bannerColor } : {}),
+      ...(bio !== undefined ? { bio: bio?.trim().slice(0, 190) || null } : {}),
+      ...(pronouns !== undefined ? { pronouns: pronouns?.trim().slice(0, 40) || null } : {}),
+      ...(youtubeUrl !== undefined ? { youtubeUrl: cleanUrl(youtubeUrl || "") } : {}),
+      ...(spotifyUrl !== undefined ? { spotifyUrl: cleanUrl(spotifyUrl || "") } : {}),
     },
   });
   res.json({ user: publicUser(user) });

@@ -5,6 +5,7 @@ import MessageInput from "./MessageInput.jsx";
 
 export default function ChatArea({
   title,
+  titleUserId,
   type = "TEXT",
   messages,
   currentUserId,
@@ -15,6 +16,7 @@ export default function ChatArea({
   onReact,
   onReport,
   onVotePoll,
+  onOpenProfile,
   onTypingStart,
   onTypingStop,
   typingUsers,
@@ -47,7 +49,13 @@ export default function ChatArea({
         ) : (
           <span className="mono text-gray-500 shrink-0">/</span>
         )}
-        <span className="font-bold text-ink truncate flex-1">{title}</span>
+        {titleUserId ? (
+          <button onClick={() => onOpenProfile?.(titleUserId)} className="font-bold text-ink truncate flex-1 text-left hover:underline">
+            {title}
+          </button>
+        ) : (
+          <span className="font-bold text-ink truncate flex-1">{title}</span>
+        )}
         {showMemberToggle && (
           <button
             onClick={onToggleMembers}
@@ -89,6 +97,7 @@ export default function ChatArea({
                   onReact={onReact}
                   onReport={onReport}
                   onVotePoll={onVotePoll}
+                  onOpenProfile={onOpenProfile}
                 />
               );
             })}

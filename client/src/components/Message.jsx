@@ -6,7 +6,7 @@ import { Edit, Trash, Smile, Flag } from "./Icons.jsx";
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "🎉", "😮", "😢"];
 
-export default function Message({ message, isOwn, canModerate, currentUserId, onEdit, onDelete, onReact, onReport, onVotePoll, grouped }) {
+export default function Message({ message, isOwn, canModerate, currentUserId, onEdit, onDelete, onReact, onReport, onVotePoll, onOpenProfile, grouped }) {
   const [hover, setHover] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
@@ -29,14 +29,20 @@ export default function Message({ message, isOwn, canModerate, currentUserId, on
     >
       {!isOwn && (
         <div className="w-8 shrink-0">
-          {!grouped && <Avatar username={message.author.username} color={message.author.avatarColor} size={30} showStatus={false} />}
+          {!grouped && (
+            <button onClick={() => onOpenProfile?.(message.author.id)} className="rounded-full">
+              <Avatar username={message.author.username} color={message.author.avatarColor} url={message.author.avatarUrl} size={30} showStatus={false} />
+            </button>
+          )}
         </div>
       )}
 
       <div className={`relative flex flex-col min-w-0 max-w-[80%] sm:max-w-md ${isOwn ? "items-end" : "items-start"}`}>
         {!grouped && !isOwn && (
           <div className="flex items-baseline gap-1.5 mb-0.5 px-1">
-            <span className="font-semibold text-ink text-[13px]">{message.author.username}</span>
+            <button onClick={() => onOpenProfile?.(message.author.id)} className="font-semibold text-ink text-[13px] hover:underline">
+              {message.author.username}
+            </button>
             {message.author.isBot && (
               <span className="text-[10px] font-bold text-base-900 bg-amber rounded px-1.5 py-[1px] tracking-wide">BOT</span>
             )}

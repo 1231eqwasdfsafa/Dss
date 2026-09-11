@@ -26,6 +26,7 @@ export default function DmList({ dms, activeDmId, onSelectDm, onNewDm, presence,
             <Avatar
               username={dm.user?.username}
               color={dm.user?.avatarColor}
+              url={dm.user?.avatarUrl}
               status={presence[dm.user?.id] || dm.user?.status}
               size={36}
             />

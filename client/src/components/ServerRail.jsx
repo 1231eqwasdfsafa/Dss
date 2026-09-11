@@ -11,6 +11,7 @@ export default function ServerRail({
   onJoin,
   onDiscover,
   onOpenSettings,
+  onOpenProfile,
 }) {
   return (
     <div className="w-[64px] bg-base-900 flex flex-col items-center py-3 gap-1.5 shrink-0 overflow-y-auto scrollbar-none">
@@ -47,7 +48,7 @@ export default function ServerRail({
       </div>
 
       <div className="w-6 h-px bg-base-700 my-1.5" />
-      <AccountMenu onOpenSettings={onOpenSettings} />
+      <AccountMenu onOpenSettings={onOpenSettings} onOpenProfile={onOpenProfile} />
     </div>
   );
 }

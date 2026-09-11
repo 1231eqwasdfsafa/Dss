@@ -28,7 +28,7 @@ export default function MobileTabBar({ active, onChange, onCreate }) {
           tab={{ key: "account", label: "Hesabim" }}
           active={active === "account"}
           onClick={() => onChange("account")}
-          icon={user && <Avatar username={user.username} color={user.avatarColor} size={19} showStatus={false} square />}
+          icon={user && <Avatar username={user.username} color={user.avatarColor} url={user.avatarUrl} size={19} showStatus={false} square />}
         />
 
         <button

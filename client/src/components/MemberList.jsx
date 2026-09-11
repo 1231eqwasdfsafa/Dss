@@ -7,7 +7,7 @@ const GROUPS = [
   { role: "MEMBER", label: "Uyeler" },
 ];
 
-export default function MemberList({ open, onClose, members, presence, onStartDm }) {
+export default function MemberList({ open, onClose, members, presence, onOpenProfile }) {
   const withPresence = members.map((m) => ({ ...m, status: presence[m.id] || m.status }));
   const online = withPresence.filter((m) => m.status !== "OFFLINE");
   const offline = withPresence.filter((m) => m.status === "OFFLINE");
@@ -40,7 +40,7 @@ export default function MemberList({ open, onClose, members, presence, onStartDm
                 {g.label} — <span className="mono">{group.length}</span>
               </div>
               {group.map((m) => (
-                <MemberRow key={m.id} member={m} onClick={() => onStartDm(m)} />
+                <MemberRow key={m.id} member={m} onClick={() => onOpenProfile(m.id)} />
               ))}
             </div>
           );
@@ -52,7 +52,7 @@ export default function MemberList({ open, onClose, members, presence, onStartDm
               Cevrimdisi — <span className="mono">{offline.length}</span>
             </div>
             {offline.map((m) => (
-              <MemberRow key={m.id} member={m} muted onClick={() => onStartDm(m)} />
+              <MemberRow key={m.id} member={m} muted onClick={() => onOpenProfile(m.id)} />
             ))}
           </div>
         )}
@@ -67,7 +67,7 @@ function MemberRow({ member, muted, onClick }) {
       onClick={onClick}
       className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-base-750 text-left ${muted ? "opacity-50" : ""}`}
     >
-      <Avatar username={member.username} color={member.avatarColor} status={member.status} size={32} />
+      <Avatar username={member.username} color={member.avatarColor} url={member.avatarUrl} status={member.status} size={32} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1">
           <span className="text-sm font-medium text-gray-200 truncate">{member.nickname || member.username}</span>

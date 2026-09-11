@@ -6,6 +6,19 @@ import { serializeMessage, MESSAGE_INCLUDE } from "./messages.js";
 const router = Router();
 router.use(requireAuth);
 
+function publicDmUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    discriminator: user.discriminator,
+    avatarColor: user.avatarColor,
+    avatarUrl: user.avatarUrl,
+    status: user.status,
+    customStatus: user.customStatus,
+    isBot: user.isBot,
+  };
+}
+
 // List DM channels for current user
 router.get("/", async (req, res) => {
   const memberships = await prisma.dMMember.findMany({
@@ -21,15 +34,7 @@ router.get("/", async (req, res) => {
     const other = m.dmChannel.members.find((mem) => mem.userId !== req.userId)?.user;
     return {
       id: m.dmChannel.id,
-      user: other
-        ? {
-            id: other.id,
-            username: other.username,
-            discriminator: other.discriminator,
-            avatarColor: other.avatarColor,
-            status: other.status,
-          }
-        : null,
+      user: other ? publicDmUser(other) : null,
     };
   });
 
@@ -61,7 +66,7 @@ router.post("/", async (req, res) => {
 
   if (existing) {
     const other = existing.members.find((m) => m.userId !== req.userId)?.user;
-    return res.json({ dm: { id: existing.id, user: other } });
+    return res.json({ dm: { id: existing.id, user: other ? publicDmUser(other) : null } });
   }
 
   const dm = await prisma.dMChannel.create({
@@ -69,7 +74,7 @@ router.post("/", async (req, res) => {
     include: { members: { include: { user: true } } },
   });
   const other = dm.members.find((m) => m.userId !== req.userId)?.user;
-  res.status(201).json({ dm: { id: dm.id, user: other } });
+  res.status(201).json({ dm: { id: dm.id, user: other ? publicDmUser(other) : null } });
 });
 
 async function assertDmAccess(dmChannelId, userId) {

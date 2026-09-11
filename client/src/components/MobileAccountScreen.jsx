@@ -10,7 +10,7 @@ const STATUS_OPTIONS = [
   { value: "OFFLINE", label: "Gorunmez", color: "bg-gray-500" },
 ];
 
-export default function MobileAccountScreen({ onOpenSettings }) {
+export default function MobileAccountScreen({ onOpenSettings, onOpenProfile }) {
   const { user, logout, updateProfile } = useAuthStore();
   if (!user) return null;
 
@@ -25,13 +25,13 @@ export default function MobileAccountScreen({ onOpenSettings }) {
         <span className="font-bold text-ink">Hesabim</span>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="flex items-center gap-3 mb-6">
-          <Avatar username={user.username} color={user.avatarColor} status={user.status} size={56} square />
+        <button onClick={onOpenProfile} className="flex items-center gap-3 mb-6 w-full text-left hover:opacity-90">
+          <Avatar username={user.username} color={user.avatarColor} url={user.avatarUrl} status={user.status} size={56} square />
           <div>
             <div className="font-bold text-ink">{user.username}</div>
             <div className="text-sm text-gray-500 mono">#{user.discriminator}</div>
           </div>
-        </div>
+        </button>
 
         <div className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">Durum</div>
         <div className="flex flex-col gap-0.5 mb-6">

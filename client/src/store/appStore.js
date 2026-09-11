@@ -15,6 +15,7 @@ export const useAppStore = create((set, get) => ({
   activeDmId: null,
   messagesByDm: {},
   presence: {},
+  activity: {}, // userId -> { track, artist, albumArt, trackUrl, startedAt } | undefined
   typing: {}, // roomKey -> { userId: username }
   view: "server", // "server" | "dm" | "discover"
   discoverResults: [],
@@ -286,6 +287,20 @@ export const useAppStore = create((set, get) => ({
   },
 
   setPresence: (userId, status) => set((s) => ({ presence: { ...s.presence, [userId]: status } })),
+
+  fetchActivitySnapshot: async () => {
+    if (DEMO_MODE) return;
+    const { data } = await api.get("/users/activity");
+    set({ activity: data.activity });
+  },
+
+  setActivity: (userId, activity) =>
+    set((s) => {
+      const next = { ...s.activity };
+      if (activity) next[userId] = activity;
+      else delete next[userId];
+      return { activity: next };
+    }),
 
   setTyping: (roomKey, userId, username) =>
     set((s) => ({ typing: { ...s.typing, [roomKey]: { ...(s.typing[roomKey] || {}), [userId]: username } } })),

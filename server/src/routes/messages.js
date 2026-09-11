@@ -26,6 +26,7 @@ export function serializeMessage(m) {
       username: m.author.username,
       discriminator: m.author.discriminator,
       avatarColor: m.author.avatarColor,
+      avatarUrl: m.author.avatarUrl,
       isBot: m.author.isBot,
     },
     reactions: groupReactions(m.reactions),

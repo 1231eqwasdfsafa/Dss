@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { verifyToken } from "./utils/jwt.js";
 import { prisma } from "./lib/prisma.js";
 import { serializeMessage, MESSAGE_INCLUDE } from "./routes/messages.js";
+import { setActivity, clearActivity } from "./lib/activity.js";
 
 const onlineUsers = new Map(); // userId -> Set(socketId)
 
@@ -106,6 +107,27 @@ export function initSocket(httpServer, clientOrigin) {
       io.emit("presence:update", { userId, status });
     });
 
+    // "Currently listening" activity — manually entered (no real Spotify
+    // OAuth is wired up), broadcast the same way presence is: globally, to
+    // whoever has this user's profile card open.
+    socket.on("activity:start", ({ track, artist, albumArt, trackUrl } = {}) => {
+      if (!track?.trim() || !artist?.trim()) return;
+      const activity = {
+        track: track.trim().slice(0, 120),
+        artist: artist.trim().slice(0, 120),
+        albumArt: albumArt?.trim().slice(0, 500) || null,
+        trackUrl: trackUrl?.trim().slice(0, 500) || null,
+        startedAt: Date.now(),
+      };
+      setActivity(userId, activity);
+      io.emit("activity:update", { userId, activity });
+    });
+
+    socket.on("activity:stop", () => {
+      clearActivity(userId);
+      io.emit("activity:update", { userId, activity: null });
+    });
+
     socket.on("disconnect", async () => {
       const sockets = onlineUsers.get(userId);
       sockets?.delete(socket.id);
@@ -113,6 +135,8 @@ export function initSocket(httpServer, clientOrigin) {
         onlineUsers.delete(userId);
         await prisma.user.update({ where: { id: userId }, data: { status: "OFFLINE" } });
         io.emit("presence:update", { userId, status: "OFFLINE" });
+        clearActivity(userId);
+        io.emit("activity:update", { userId, activity: null });
       }
     });
   });

@@ -16,6 +16,7 @@ import DiscoverPage from "../components/DiscoverPage.jsx";
 import MobileTabBar from "../components/MobileTabBar.jsx";
 import MobileServerRail from "../components/MobileServerRail.jsx";
 import MobileAccountScreen from "../components/MobileAccountScreen.jsx";
+import ProfileCard from "../components/ProfileCard.jsx";
 
 import CreateServerModal from "../components/modals/CreateServerModal.jsx";
 import JoinServerModal from "../components/modals/JoinServerModal.jsx";
@@ -46,6 +47,8 @@ export default function MainLayout() {
     view,
     fetchServers,
     fetchDms,
+    fetchActivitySnapshot,
+    setActivity,
     selectServer,
     selectChannel,
     selectDm,
@@ -78,6 +81,8 @@ export default function MainLayout() {
   const [modal, setModal] = useState(null); // 'createServer' | 'joinServer' | 'createChannel' | 'invite' | 'newDm' | 'settings' | 'createPoll' | 'reports'
   const [membersOpen, setMembersOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState(null); // messageId being reported
+  const [profileUserId, setProfileUserId] = useState(null); // user whose profile card is open
+  const openProfile = (userId) => setProfileUserId(userId);
 
   // Mobile-only navigation stack: which tab's root list is showing, and how
   // deep the drill-down goes (list -> channel list -> chat), independent of
@@ -93,6 +98,7 @@ export default function MainLayout() {
   useEffect(() => {
     fetchServers();
     fetchDms();
+    fetchActivitySnapshot();
   }, []);
 
   // Auto-select first server + channel once loaded (desktop shows it right
@@ -119,6 +125,7 @@ export default function MainLayout() {
       setPresence(userId, status);
       setOwnPresence(userId, status);
     };
+    const onActivity = ({ userId, activity }) => setActivity(userId, activity);
     const onMemberJoined = ({ serverId, member }) => addMemberToStore(serverId, member);
     const onTypingStart = ({ userId, username, channelId, dmChannelId }) => {
       setTyping(channelId || dmChannelId, userId, username);
@@ -131,6 +138,7 @@ export default function MainLayout() {
     socket.on("message:update", onUpdate);
     socket.on("message:delete", onDelete);
     socket.on("presence:update", onPresence);
+    socket.on("activity:update", onActivity);
     socket.on("member:joined", onMemberJoined);
     socket.on("typing:start", onTypingStart);
     socket.on("typing:stop", onTypingStop);
@@ -140,6 +148,7 @@ export default function MainLayout() {
       socket.off("message:update", onUpdate);
       socket.off("message:delete", onDelete);
       socket.off("presence:update", onPresence);
+      socket.off("activity:update", onActivity);
       socket.off("member:joined", onMemberJoined);
       socket.off("typing:start", onTypingStart);
       socket.off("typing:stop", onTypingStop);
@@ -306,6 +315,20 @@ export default function MainLayout() {
           }}
         />
       )}
+      {profileUserId && (
+        <ProfileCard
+          userId={profileUserId}
+          onClose={() => setProfileUserId(null)}
+          onStartDm={(userId) => {
+            handleStartDm({ userId });
+            setProfileUserId(null);
+          }}
+          onEditSelf={() => {
+            setProfileUserId(null);
+            setModal("settings");
+          }}
+        />
+      )}
     </>
   );
 
@@ -316,6 +339,7 @@ export default function MainLayout() {
     onReact: toggleReaction,
     onReport: handleReportMessage,
     onVotePoll: votePoll,
+    onOpenProfile: openProfile,
     onSend: sendMessage,
     onTypingStart: typingStart,
     onTypingStop: typingStop,
@@ -389,7 +413,9 @@ export default function MainLayout() {
             />
           )}
 
-          {mobileScreen === "tabs" && mobileTab === "account" && <MobileAccountScreen onOpenSettings={() => setModal("settings")} />}
+          {mobileScreen === "tabs" && mobileTab === "account" && (
+            <MobileAccountScreen onOpenSettings={() => setModal("settings")} onOpenProfile={() => openProfile(user.id)} />
+          )}
 
           {mobileScreen === "chat" && mobileTab === "servers" && activeChannel && (
             <div key={`chat-${activeChannel.id}`} className={`relative flex-1 flex min-w-0 ${slideClass}`}>
@@ -407,7 +433,7 @@ export default function MainLayout() {
                 headerLeft={<BackBtn onClick={() => goTo("tabs", "back")} />}
               />
               {activeServer && (
-                <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onStartDm={handleStartDm} />
+                <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onOpenProfile={openProfile} />
               )}
             </div>
           )}
@@ -417,6 +443,7 @@ export default function MainLayout() {
               <ChatArea
                 {...chatProps}
                 title={activeDm.user?.username || "Bilinmeyen"}
+                titleUserId={activeDm.user?.id}
                 type="TEXT"
                 messages={messagesByDm[activeDmId] || []}
                 canModerate={false}
@@ -456,6 +483,7 @@ export default function MainLayout() {
         onJoin={() => setModal("joinServer")}
         onDiscover={selectDiscover}
         onOpenSettings={() => setModal("settings")}
+        onOpenProfile={() => openProfile(user.id)}
       />
 
       {view !== "discover" && (
@@ -501,6 +529,7 @@ export default function MainLayout() {
             <ChatArea
               {...chatProps}
               title={activeDm.user?.username || "Bilinmeyen"}
+              titleUserId={activeDm.user?.id}
               type="TEXT"
               messages={messagesByDm[activeDmId] || []}
               canModerate={false}
@@ -512,7 +541,7 @@ export default function MainLayout() {
           )}
 
           {view === "server" && activeServer && (
-            <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onStartDm={handleStartDm} />
+            <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onOpenProfile={openProfile} />
           )}
         </div>
       )}

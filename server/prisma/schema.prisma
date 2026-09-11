@@ -19,6 +19,13 @@ model User {
   email         String   @unique
   password      String
   avatarColor   String   @default("#5865F2")
+  avatarUrl     String?
+  bannerUrl     String?
+  bannerColor   String   @default("#4C3B2C")
+  bio           String?
+  pronouns      String?
+  youtubeUrl    String?
+  spotifyUrl    String?
   status        String   @default("OFFLINE")
   customStatus  String?
   isBot         Boolean  @default(false)
