@@ -71,7 +71,7 @@ router.post("/login", async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
+    if (!user || user.isBot) {
       return res.status(401).json({ error: "Gecersiz email veya sifre" });
     }
 

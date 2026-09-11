@@ -37,10 +37,10 @@ router.post("/", async (req, res) => {
 
   const server = await prisma.server.create({
     data: {
-      name: name.trim(),
-      description: description?.trim() || null,
-      category: category?.trim() || null,
-      tags: Array.isArray(tags) ? tags.filter(Boolean).join(",") : null,
+      name: name.trim().slice(0, 60),
+      description: description?.trim().slice(0, 140) || null,
+      category: category?.trim().slice(0, 30) || null,
+      tags: Array.isArray(tags) ? tags.filter(Boolean).join(",").slice(0, 200) : null,
       ownerId: req.userId,
       inviteCode: genInviteCode(),
       members: { create: { userId: req.userId, role: "OWNER" } },
@@ -65,6 +65,7 @@ router.get("/discover", async (req, res) => {
   const servers = await prisma.server.findMany({
     where: {
       isDiscoverable: true,
+      members: { none: { userId: req.userId } },
       ...(category ? { category } : {}),
       ...(q
         ? {
@@ -172,7 +173,7 @@ router.post("/:serverId/channels", async (req, res) => {
   const count = await prisma.channel.count({ where: { serverId } });
   const channel = await prisma.channel.create({
     data: {
-      name: name.trim().toLowerCase().replace(/\s+/g, "-"),
+      name: name.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 40),
       type: type === "VOICE" ? "VOICE" : "TEXT",
       serverId,
       position: count,
@@ -237,6 +238,15 @@ router.post("/:serverId/reports/:reportId/resolve", async (req, res) => {
   if (!membership || membership.role === "MEMBER") {
     return res.status(403).json({ error: "Bu islemi yapma yetkin yok" });
   }
+
+  const report = await prisma.report.findUnique({
+    where: { id: req.params.reportId },
+    include: { message: { include: { channel: true } } },
+  });
+  if (!report || report.message.channel?.serverId !== req.params.serverId) {
+    return res.status(404).json({ error: "Rapor bulunamadi" });
+  }
+
   await prisma.report.update({ where: { id: req.params.reportId }, data: { status: "RESOLVED" } });
   res.json({ ok: true });
 });

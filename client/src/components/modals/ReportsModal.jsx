@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { Trash, Check } from "../Icons.jsx";
 
 export default function ReportsModal({ serverId, onClose }) {
-  const { reportsByServer, fetchReports, resolveReport, deleteMessage, removeMessageFromStore } = useAppStore();
+  const { reportsByServer, fetchReports, resolveReport, deleteMessage } = useAppStore();
   const [loading, setLoading] = useState(true);
   const reports = reportsByServer[serverId] || [];
 
@@ -19,8 +19,11 @@ export default function ReportsModal({ serverId, onClose }) {
   }
 
   async function handleDeleteAndResolve(report) {
+    // Deleting broadcasts "message:delete" (with the right channelId) to
+    // anyone actually viewing that channel — this modal doesn't know which
+    // channel the message was in, so it can't (and doesn't need to) update
+    // any message list itself.
     await deleteMessage(report.message.id);
-    removeMessageFromStore(report.message.id, null, null);
     await resolveReport(serverId, report.id);
   }
 

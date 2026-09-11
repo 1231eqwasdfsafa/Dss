@@ -64,6 +64,27 @@ async function assertChannelAccess(channelId, userId) {
   return membership ? channel : null;
 }
 
+// Reactions/reports/etc. operate on a message by id alone; this checks the
+// requester actually belongs to the channel's server (or the DM) it's in,
+// so a message id can't be used to poke at conversations you're not part of.
+async function assertMessageAccess(message, userId) {
+  if (message.channelId) {
+    const channel = await prisma.channel.findUnique({ where: { id: message.channelId } });
+    if (!channel) return false;
+    const membership = await prisma.serverMember.findUnique({
+      where: { userId_serverId: { userId, serverId: channel.serverId } },
+    });
+    return Boolean(membership);
+  }
+  if (message.dmChannelId) {
+    const membership = await prisma.dMMember.findUnique({
+      where: { userId_dmChannelId: { userId, dmChannelId: message.dmChannelId } },
+    });
+    return Boolean(membership);
+  }
+  return false;
+}
+
 // Get messages for a text channel
 router.get("/channel/:channelId", async (req, res) => {
   const channel = await assertChannelAccess(req.params.channelId, req.userId);
@@ -111,7 +132,10 @@ router.patch("/:messageId", async (req, res) => {
     data: { content: content.trim(), edited: true },
     include: MESSAGE_INCLUDE,
   });
-  res.json({ message: serializeMessage(updated) });
+  const payload = serializeMessage(updated);
+  const room = message.channelId ? `channel:${message.channelId}` : `dm:${message.dmChannelId}`;
+  req.app.get("io")?.to(room).emit("message:update", payload);
+  res.json({ message: payload });
 });
 
 // Delete a message
@@ -134,6 +158,12 @@ router.delete("/:messageId", async (req, res) => {
   }
 
   await prisma.message.delete({ where: { id: message.id } });
+  const room = message.channelId ? `channel:${message.channelId}` : `dm:${message.dmChannelId}`;
+  req.app.get("io")?.to(room).emit("message:delete", {
+    messageId: message.id,
+    channelId: message.channelId,
+    dmChannelId: message.dmChannelId,
+  });
   res.json({ ok: true });
 });
 
@@ -141,6 +171,12 @@ router.delete("/:messageId", async (req, res) => {
 router.post("/:messageId/reactions", async (req, res) => {
   const { emoji } = req.body;
   if (!emoji) return res.status(400).json({ error: "Emoji gerekli" });
+
+  const message = await prisma.message.findUnique({ where: { id: req.params.messageId } });
+  if (!message) return res.status(404).json({ error: "Mesaj bulunamadi" });
+  if (!(await assertMessageAccess(message, req.userId))) {
+    return res.status(403).json({ error: "Bu mesaja erisimin yok" });
+  }
 
   const existing = await prisma.reaction.findUnique({
     where: { userId_messageId_emoji: { userId: req.userId, messageId: req.params.messageId, emoji } },
@@ -152,11 +188,14 @@ router.post("/:messageId/reactions", async (req, res) => {
     await prisma.reaction.create({ data: { emoji, userId: req.userId, messageId: req.params.messageId } });
   }
 
-  const message = await prisma.message.findUnique({
+  const updated = await prisma.message.findUnique({
     where: { id: req.params.messageId },
     include: MESSAGE_INCLUDE,
   });
-  res.json({ message: serializeMessage(message) });
+  const payload = serializeMessage(updated);
+  const room = message.channelId ? `channel:${message.channelId}` : `dm:${message.dmChannelId}`;
+  req.app.get("io")?.to(room).emit("message:update", payload);
+  res.json({ message: payload });
 });
 
 // Report a message
@@ -166,9 +205,12 @@ router.post("/:messageId/report", async (req, res) => {
 
   const message = await prisma.message.findUnique({ where: { id: req.params.messageId } });
   if (!message) return res.status(404).json({ error: "Mesaj bulunamadi" });
+  if (!(await assertMessageAccess(message, req.userId))) {
+    return res.status(403).json({ error: "Bu mesaja erisimin yok" });
+  }
 
   await prisma.report.create({
-    data: { messageId: message.id, reporterId: req.userId, reason: reason.trim() },
+    data: { messageId: message.id, reporterId: req.userId, reason: reason.trim().slice(0, 300) },
   });
   res.status(201).json({ ok: true });
 });

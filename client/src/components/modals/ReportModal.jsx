@@ -8,12 +8,16 @@ export default function ReportModal({ onClose, onSubmit }) {
   const [reason, setReason] = useState(REASONS[0]);
   const [detail, setDetail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function submit(e) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       await onSubmit(detail.trim() ? `${reason}: ${detail.trim()}` : reason);
+    } catch (err) {
+      setError(err.response?.data?.error || "Rapor gonderilemedi");
     } finally {
       setLoading(false);
     }
@@ -22,6 +26,7 @@ export default function ReportModal({ onClose, onSubmit }) {
   return (
     <Modal title="Mesaji Rapor Et" onClose={onClose}>
       <p className="text-sm text-gray-400 mb-4">Rapor sunucu yoneticilerine iletilir ve incelenir.</p>
+      {error && <div className="mb-3 text-sm bg-dnd/10 text-dnd border border-dnd/30 rounded-lg px-3 py-2">{error}</div>}
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Neden</span>

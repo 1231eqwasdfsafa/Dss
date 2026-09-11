@@ -5,6 +5,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
+import crypto from "crypto";
 
 import authRoutes from "./routes/auth.js";
 import serverRoutes from "./routes/servers.js";
@@ -13,6 +14,7 @@ import dmRoutes from "./routes/dms.js";
 import userRoutes from "./routes/users.js";
 import pollRoutes from "./routes/polls.js";
 import { initSocket } from "./socket.js";
+import { requireAuth } from "./middleware/auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -26,16 +28,32 @@ app.use(express.json());
 const uploadDir = path.join(__dirname, "..", "uploads");
 app.use("/uploads", express.static(uploadDir));
 
+// Only images are ever legitimately uploaded here (avatars/banners). The
+// stored filename's extension is derived from the validated mimetype, never
+// from the client-supplied original name — otherwise an attacker could
+// upload e.g. "x.html" and have it served same-origin as text/html, letting
+// script on it read localStorage (including the auth token).
+const MIME_EXT = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/gif": "gif",
+  "image/webp": "webp",
+};
+
 const storage = multer.diskStorage({
   destination: uploadDir,
-  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "")}`),
+  filename: (_req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${MIME_EXT[file.mimetype]}`),
 });
-const upload = multer({ storage, limits: { fileSize: 8 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => cb(null, Boolean(MIME_EXT[file.mimetype])),
+});
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-app.post("/api/upload", upload.single("file"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "Dosya bulunamadi" });
+app.post("/api/upload", requireAuth, upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Sadece PNG, JPEG, GIF veya WEBP resim dosyalari yuklenebilir" });
   res.json({ url: `/uploads/${req.file.filename}` });
 });
 

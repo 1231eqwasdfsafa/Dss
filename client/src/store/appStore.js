@@ -5,6 +5,18 @@ import { DEMO_MODE, demoServers, demoMembers, demoMessages, demoDms, demoDmMessa
 
 let demoMsgCounter = 1000;
 
+// Leaving/deleting the currently active server must also clear activeServerId
+// (and its channel), otherwise it keeps pointing at a server no longer in the
+// list — the UI then renders as "no servers" even when others remain, since
+// the mobile/desktop views key off activeServer, not servers.length, and the
+// auto-select effect only fires when activeServerId is falsy.
+function removeServerFromState(s, serverId) {
+  return {
+    servers: s.servers.filter((sv) => sv.id !== serverId),
+    ...(s.activeServerId === serverId ? { activeServerId: null, activeChannelId: null } : {}),
+  };
+}
+
 export const useAppStore = create((set, get) => ({
   servers: [],
   activeServerId: null,
@@ -98,15 +110,15 @@ export const useAppStore = create((set, get) => ({
   },
 
   leaveServer: async (serverId) => {
-    if (DEMO_MODE) return set((s) => ({ servers: s.servers.filter((sv) => sv.id !== serverId) }));
+    if (DEMO_MODE) return set((s) => removeServerFromState(s, serverId));
     await api.post(`/servers/${serverId}/leave`);
-    set((s) => ({ servers: s.servers.filter((sv) => sv.id !== serverId) }));
+    set((s) => removeServerFromState(s, serverId));
   },
 
   deleteServer: async (serverId) => {
-    if (DEMO_MODE) return set((s) => ({ servers: s.servers.filter((sv) => sv.id !== serverId) }));
+    if (DEMO_MODE) return set((s) => removeServerFromState(s, serverId));
     await api.delete(`/servers/${serverId}`);
-    set((s) => ({ servers: s.servers.filter((sv) => sv.id !== serverId) }));
+    set((s) => removeServerFromState(s, serverId));
   },
 
   createChannel: async (serverId, name, type) => {

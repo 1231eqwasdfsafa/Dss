@@ -126,8 +126,11 @@ export default function MainLayout() {
 
     const onNew = (msg) => receiveMessage(msg);
     const onUpdate = (msg) => updateMessageInStore(msg);
-    const onDelete = ({ messageId }) => {
-      removeMessageFromStore(messageId, activeChannelId, activeDmId);
+    const onDelete = ({ messageId, channelId, dmChannelId }) => {
+      // Use the event's own routing, not "whichever channel/DM is active" —
+      // this socket receives deletes for every room it's joined (e.g. any
+      // DM), not just the one currently open.
+      removeMessageFromStore(messageId, channelId, dmChannelId);
     };
     const onPresence = ({ userId, status }) => {
       setPresence(userId, status);
@@ -221,19 +224,19 @@ export default function MainLayout() {
   }
 
   async function handleDeleteMessage(messageId) {
+    // The server broadcasts "message:delete" (including back to us) after
+    // verifying the delete via REST, same pattern as "message:new" — no
+    // client-triggered socket relay, so this removal is just our own
+    // immediate feedback while that broadcast is in flight.
     await deleteMessage(messageId);
     removeMessageFromStore(messageId, activeChannelId, activeDmId);
-    if (DEMO_MODE) return;
-    getSocket().emit("message:delete", { messageId, channelId: activeChannelId, dmChannelId: activeDmId });
   }
 
   async function handleEditMessage(messageId, content) {
+    // Same pattern: the server broadcasts "message:update" after the REST
+    // edit succeeds (editMessage already applies the REST response locally
+    // for immediate feedback; the broadcast is what reaches other viewers).
     await editMessage(messageId, content);
-    if (DEMO_MODE) return;
-    const socket = getSocket();
-    const list = activeChannelId ? messagesByChannel[activeChannelId] : messagesByDm[activeDmId];
-    const updated = list?.find((m) => m.id === messageId);
-    if (updated) socket.emit("message:update", { ...updated, content, edited: true });
   }
 
   async function handleLeaveOrDelete() {

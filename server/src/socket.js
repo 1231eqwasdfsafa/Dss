@@ -90,15 +90,11 @@ export function initSocket(httpServer, clientOrigin) {
       socket.to(room).emit("typing:stop", { userId, channelId, dmChannelId });
     });
 
-    socket.on("message:delete", async ({ messageId, channelId, dmChannelId }) => {
-      const room = channelId ? `channel:${channelId}` : `dm:${dmChannelId}`;
-      io.to(room).emit("message:delete", { messageId });
-    });
-
-    socket.on("message:update", (payload) => {
-      const room = payload.channelId ? `channel:${payload.channelId}` : `dm:${payload.dmChannelId}`;
-      io.to(room).emit("message:update", payload);
-    });
+    // message:update and message:delete are NOT accepted as client-initiated
+    // socket events — they're broadcast by the REST routes (messages.js)
+    // after verifying ownership/permissions there. A client-triggered relay
+    // here would let anyone broadcast fake edits or ghost-deletes for any
+    // message id, to any room, with no authorization check at all.
 
     socket.on("server:join_room", (serverId) => socket.join(`server:${serverId}`));
 
