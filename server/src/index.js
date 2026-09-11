@@ -17,7 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
 
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || (process.env.NODE_ENV === "production" ? true : "http://localhost:5173");
 
 app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.use(express.json());
@@ -43,6 +43,14 @@ app.use("/api/servers", serverRoutes);
 app.use("/api/messages", channelMessageRoutes);
 app.use("/api/dms", dmRoutes);
 app.use("/api/users", userRoutes);
+
+// Serve the built frontend (client/dist) when present, so a single service
+// can host both the API and the SPA in production deployments.
+const clientDist = path.join(__dirname, "..", "..", "client", "dist");
+app.use(express.static(clientDist));
+app.get(/^(?!\/api|\/uploads|\/socket\.io).*/, (_req, res, next) => {
+  res.sendFile(path.join(clientDist, "index.html"), (err) => (err ? next() : undefined));
+});
 
 app.use((err, _req, res, _next) => {
   console.error(err);
