@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
-import { serializeMessage } from "./messages.js";
+import { serializeMessage, MESSAGE_INCLUDE } from "./messages.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -82,7 +82,7 @@ router.get("/:dmChannelId/messages", async (req, res) => {
 
   const messages = await prisma.message.findMany({
     where: { dmChannelId: req.params.dmChannelId },
-    include: { author: true, reactions: true },
+    include: MESSAGE_INCLUDE,
     orderBy: { createdAt: "desc" },
     take: 50,
   });
@@ -97,7 +97,7 @@ router.post("/:dmChannelId/messages", async (req, res) => {
 
   const message = await prisma.message.create({
     data: { content: content.trim(), authorId: req.userId, dmChannelId: req.params.dmChannelId },
-    include: { author: true, reactions: true },
+    include: MESSAGE_INCLUDE,
   });
   res.status(201).json({ message: serializeMessage(message) });
 });

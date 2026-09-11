@@ -4,16 +4,24 @@
 
 @layer components {
   .input {
-    @apply bg-base-900 border border-base-600 rounded-lg px-3 py-2.5 text-sm text-gray-100 outline-none focus:border-accent transition-colors;
+    @apply bg-base-900 border border-base-600 rounded-lg px-3 py-2.5 text-sm text-ink outline-none focus:border-teal transition-colors;
   }
+  /* Amber is reserved for primary calls-to-action, notifications, and the
+     bot hub — never used as a generic UI accent. */
   .btn-primary {
-    @apply bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-amber hover:bg-amber-hover text-base-900 font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-base-600 hover:bg-base-500 text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-base-600 hover:bg-base-500 text-ink font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-ghost {
-    @apply text-gray-400 hover:text-white font-medium text-sm transition-colors;
+    @apply text-gray-400 hover:text-ink font-medium text-sm transition-colors;
+  }
+  .link {
+    @apply text-teal hover:underline;
+  }
+  .mono {
+    @apply font-mono tabular-nums;
   }
 }
 
@@ -29,9 +37,9 @@ body,
 
 body {
   margin: 0;
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
-  background-color: #0b0d13;
-  color: #e3e5e8;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  background-color: #0e1013;
+  color: #edebe6;
 }
 
 ::-webkit-scrollbar {
@@ -42,11 +50,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #22252f;
+  background: #1e2228;
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2b2e3a;
+  background: #262b32;
 }
 
 .scrollbar-none::-webkit-scrollbar {
@@ -65,4 +73,13 @@ body {
 }
 .animate-fade-in {
   animation: fade-in 0.15s ease-out;
+}
+
+@keyframes bar-grow {
+  from {
+    width: 0%;
+  }
+}
+.animate-bar-grow {
+  animation: bar-grow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }

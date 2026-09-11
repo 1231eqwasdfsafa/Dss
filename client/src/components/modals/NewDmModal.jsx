@@ -44,7 +44,7 @@ export default function NewDmModal({ onClose, onStart }) {
             <Avatar username={u.username} color={u.avatarColor} status={u.status} size={32} />
             <span className="text-sm font-medium text-gray-200">
               {u.username}
-              <span className="text-gray-500">#{u.discriminator}</span>
+              <span className="text-gray-500 mono">#{u.discriminator}</span>
             </span>
           </button>
         ))}

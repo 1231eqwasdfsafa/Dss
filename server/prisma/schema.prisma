@@ -21,6 +21,7 @@ model User {
   avatarColor   String   @default("#5865F2")
   status        String   @default("OFFLINE")
   customStatus  String?
+  isBot         Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   memberships    ServerMember[]
@@ -28,18 +29,24 @@ model User {
   ownedServers   Server[]        @relation("ServerOwner")
   reactions      Reaction[]
   dmMembers      DMMember[]
+  pollVotes      PollVote[]
+  reports        Report[]
 
   @@index([username])
 }
 
 model Server {
-  id        String   @id @default(cuid())
-  name      String
-  icon      String?
-  inviteCode String  @unique
-  ownerId   String
-  owner     User     @relation("ServerOwner", fields: [ownerId], references: [id])
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  name           String
+  icon           String?
+  description    String?
+  category       String?
+  tags           String? // comma-separated, simple MVP tagging
+  isDiscoverable Boolean  @default(true)
+  inviteCode     String   @unique
+  ownerId        String
+  owner          User     @relation("ServerOwner", fields: [ownerId], references: [id])
+  createdAt      DateTime @default(now())
 
   members  ServerMember[]
   channels Channel[]
@@ -91,6 +98,7 @@ model DMMember {
 
 model Message {
   id          String     @id @default(cuid())
+  type        String     @default("TEXT") // TEXT | POLL
   content     String
   edited      Boolean    @default(false)
   attachment  String?
@@ -103,6 +111,8 @@ model Message {
   createdAt   DateTime   @default(now())
 
   reactions Reaction[]
+  poll      Poll?
+  reports   Report[]
 
   @@index([channelId])
   @@index([dmChannelId])
@@ -117,4 +127,48 @@ model Reaction {
   message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([userId, messageId, emoji])
+}
+
+model Poll {
+  id        String       @id @default(cuid())
+  question  String
+  messageId String       @unique
+  message   Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+
+  options PollOption[]
+}
+
+model PollOption {
+  id       String     @id @default(cuid())
+  text     String
+  position Int        @default(0)
+  pollId   String
+  poll     Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  votes PollVote[]
+}
+
+model PollVote {
+  id       String     @id @default(cuid())
+  pollId   String
+  optionId String
+  userId   String
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reason     String
+  status     String   @default("OPEN") // OPEN | RESOLVED
+  messageId  String
+  reporterId String
+  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([messageId])
 }

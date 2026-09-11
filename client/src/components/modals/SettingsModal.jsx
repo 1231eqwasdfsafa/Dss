@@ -25,7 +25,7 @@ export default function SettingsModal({ onClose }) {
       <div className="flex items-center gap-3 mb-5">
         <Avatar username={user.username} color={user.avatarColor} status={user.status} size={56} />
         <div>
-          <div className="text-white font-bold">{user.username}</div>
+          <div className="text-ink font-bold">{user.username}</div>
           <div className="text-gray-400 text-sm">#{user.discriminator}</div>
         </div>
       </div>

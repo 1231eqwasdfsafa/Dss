@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Hash, Volume2, ChevronDown, Plus, UserPlus, Trash, LogOut } from "./Icons.jsx";
+import { Hash, Volume2, ChevronDown, Plus, UserPlus, Trash, LogOut, Flag } from "./Icons.jsx";
 import Avatar from "./Avatar.jsx";
 import UserPanel from "./UserPanel.jsx";
 
@@ -11,6 +11,7 @@ export default function ChannelSidebar({
   onOpenSettings,
   onCreateChannel,
   onOpenInvite,
+  onOpenReports,
   onLeaveOrDelete,
   currentUserId,
   dms,
@@ -18,14 +19,18 @@ export default function ChannelSidebar({
   onSelectDm,
   onNewDm,
   presence,
+  open,
+  onClose,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  let content = null;
+
   if (view === "dm") {
-    return (
-      <div className="w-60 bg-base-800 flex flex-col shrink-0">
+    content = (
+      <>
         <div className="h-12 flex items-center px-4 shadow-sm border-b border-base-900/60 shrink-0">
-          <span className="font-bold text-white">Direkt Mesajlar</span>
+          <span className="font-bold text-ink">Direkt Mesajlar</span>
         </div>
         <div className="flex-1 overflow-y-auto px-2 py-3">
           <button
@@ -37,9 +42,9 @@ export default function ChannelSidebar({
           {dms.map((dm) => (
             <button
               key={dm.id}
-              onClick={() => onSelectDm(dm.id)}
+              onClick={() => { onSelectDm(dm.id); onClose?.(); }}
               className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg mb-0.5 group ${
-                activeDmId === dm.id ? "bg-base-700 text-white" : "text-gray-300 hover:bg-base-750 hover:text-gray-100"
+                activeDmId === dm.id ? "bg-base-700 text-ink" : "text-gray-300 hover:bg-base-750 hover:text-gray-100"
               }`}
             >
               <Avatar
@@ -53,76 +58,105 @@ export default function ChannelSidebar({
           ))}
         </div>
         <UserPanel onOpenSettings={onOpenSettings} />
-      </div>
+      </>
+    );
+  } else if (!server) {
+    content = null;
+  } else {
+    const textChannels = server.channels.filter((c) => c.type === "TEXT");
+    const voiceChannels = server.channels.filter((c) => c.type === "VOICE");
+    const isOwner = server.myRole === "OWNER";
+    const canManage = server.myRole === "OWNER" || server.myRole === "ADMIN";
+
+    content = (
+      <>
+        <div className="relative h-12 flex items-center px-4 shadow-sm border-b border-base-900/60 shrink-0">
+          <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center justify-between w-full font-bold text-ink">
+            <span className="truncate">{server.name}</span>
+            <ChevronDown size={18} />
+          </button>
+          {menuOpen && (
+            <div className="absolute top-12 left-2 right-2 bg-base-750 rounded-lg shadow-panel py-1.5 z-20 animate-fade-in">
+              <MenuItem icon={<UserPlus size={16} />} onClick={() => { onOpenInvite(); setMenuOpen(false); }}>
+                Davet Et
+              </MenuItem>
+              {canManage && (
+                <MenuItem icon={<Plus size={16} />} onClick={() => { onCreateChannel(); setMenuOpen(false); }}>
+                  Kanal Olustur
+                </MenuItem>
+              )}
+              {canManage && (
+                <MenuItem icon={<Flag size={16} />} onClick={() => { onOpenReports(); setMenuOpen(false); }}>
+                  Raporlar
+                </MenuItem>
+              )}
+              <MenuItem
+                danger
+                icon={isOwner ? <Trash size={16} /> : <LogOut size={16} />}
+                onClick={() => { onLeaveOrDelete(); setMenuOpen(false); }}
+              >
+                {isOwner ? "Sunucuyu Sil" : "Sunucudan Ayril"}
+              </MenuItem>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-2 py-3">
+          {textChannels.length > 0 && (
+            <ChannelGroup label="Metin Kanallari">
+              {textChannels.map((ch) => (
+                <ChannelItem
+                  key={ch.id}
+                  icon={<Hash size={18} />}
+                  active={activeChannelId === ch.id}
+                  onClick={() => { onSelectChannel(ch.id); onClose?.(); }}
+                >
+                  {ch.name}
+                </ChannelItem>
+              ))}
+            </ChannelGroup>
+          )}
+
+          {voiceChannels.length > 0 && (
+            <ChannelGroup label="Ses Kanallari">
+              {voiceChannels.map((ch) => (
+                <ChannelItem
+                  key={ch.id}
+                  icon={<Volume2 size={18} />}
+                  active={activeChannelId === ch.id}
+                  onClick={() => { onSelectChannel(ch.id); onClose?.(); }}
+                >
+                  {ch.name}
+                </ChannelItem>
+              ))}
+            </ChannelGroup>
+          )}
+        </div>
+
+        <UserPanel onOpenSettings={onOpenSettings} />
+      </>
     );
   }
 
-  if (!server) {
-    return <div className="w-60 bg-base-800 shrink-0" />;
+  if (!content) {
+    return <div className="hidden md:block w-60 bg-base-800 shrink-0" />;
   }
 
-  const textChannels = server.channels.filter((c) => c.type === "TEXT");
-  const voiceChannels = server.channels.filter((c) => c.type === "VOICE");
-  const isOwner = server.myRole === "OWNER";
-  const canManage = server.myRole === "OWNER" || server.myRole === "ADMIN";
-
   return (
-    <div className="w-60 bg-base-800 flex flex-col shrink-0">
-      <div className="relative h-12 flex items-center px-4 shadow-sm border-b border-base-900/60 shrink-0">
-        <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center justify-between w-full font-bold text-white">
-          <span className="truncate">{server.name}</span>
-          <ChevronDown size={18} />
-        </button>
-        {menuOpen && (
-          <div className="absolute top-12 left-2 right-2 bg-base-750 rounded-lg shadow-panel py-1.5 z-20 animate-fade-in">
-            <MenuItem icon={<UserPlus size={16} />} onClick={() => { onOpenInvite(); setMenuOpen(false); }}>
-              Davet Et
-            </MenuItem>
-            {canManage && (
-              <MenuItem icon={<Plus size={16} />} onClick={() => { onCreateChannel(); setMenuOpen(false); }}>
-                Kanal Olustur
-              </MenuItem>
-            )}
-            <MenuItem
-              danger
-              icon={isOwner ? <Trash size={16} /> : <LogOut size={16} />}
-              onClick={() => { onLeaveOrDelete(); setMenuOpen(false); }}
-            >
-              {isOwner ? "Sunucuyu Sil" : "Sunucudan Ayril"}
-            </MenuItem>
-          </div>
-        )}
+    <>
+      <div
+        className={`fixed inset-0 z-30 md:hidden transition-opacity ${open ? "pointer-events-auto" : "pointer-events-none opacity-0"}`}
+        onClick={onClose}
+      />
+      <div
+        className={`fixed md:static inset-y-0 left-[72px] md:left-auto right-8 sm:right-auto md:right-auto z-40 md:z-auto
+          w-auto sm:w-60 md:w-60 bg-base-800 flex flex-col shrink-0 border-r border-base-900/60
+          transform transition-transform duration-200 ease-out md:translate-x-0
+          ${open ? "translate-x-0" : "-translate-x-[calc(100%+72px)] md:translate-x-0"}`}
+      >
+        {content}
       </div>
-
-      <div className="flex-1 overflow-y-auto px-2 py-3">
-        {textChannels.length > 0 && (
-          <ChannelGroup label="Metin Kanallari">
-            {textChannels.map((ch) => (
-              <ChannelItem
-                key={ch.id}
-                icon={<Hash size={18} />}
-                active={activeChannelId === ch.id}
-                onClick={() => onSelectChannel(ch.id)}
-              >
-                {ch.name}
-              </ChannelItem>
-            ))}
-          </ChannelGroup>
-        )}
-
-        {voiceChannels.length > 0 && (
-          <ChannelGroup label="Ses Kanallari">
-            {voiceChannels.map((ch) => (
-              <ChannelItem key={ch.id} icon={<Volume2 size={18} />} active={activeChannelId === ch.id} onClick={() => onSelectChannel(ch.id)}>
-                {ch.name}
-              </ChannelItem>
-            ))}
-          </ChannelGroup>
-        )}
-      </div>
-
-      <UserPanel onOpenSettings={onOpenSettings} />
-    </div>
+    </>
   );
 }
 
@@ -140,7 +174,7 @@ function ChannelItem({ children, icon, active, onClick }) {
     <button
       onClick={onClick}
       className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-        active ? "bg-base-700 text-white" : "text-gray-400 hover:bg-base-750 hover:text-gray-200"
+        active ? "bg-base-700 text-ink" : "text-gray-400 hover:bg-base-750 hover:text-gray-200"
       }`}
     >
       <span className="text-gray-500">{icon}</span>

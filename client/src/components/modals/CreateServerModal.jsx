@@ -1,8 +1,12 @@
 import { useState } from "react";
 import Modal from "./Modal.jsx";
 
+const CATEGORIES = ["Sohbet", "Oyun", "Sanat", "Muzik", "Teknoloji", "Egitim", "Diger"];
+
 export default function CreateServerModal({ onClose, onCreate }) {
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState(CATEGORIES[0]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,7 +16,7 @@ export default function CreateServerModal({ onClose, onCreate }) {
     setLoading(true);
     setError("");
     try {
-      await onCreate(name.trim());
+      await onCreate(name.trim(), { description: description.trim(), category });
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || "Sunucu olusturulamadi");
@@ -38,6 +42,27 @@ export default function CreateServerModal({ onClose, onCreate }) {
             placeholder="orn. Kod Kulubu"
           />
         </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Kategori</span>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Kisa aciklama (opsiyonel)</span>
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input"
+            placeholder="Kesif sayfasinda gorunecek kisa tanitim"
+            maxLength={140}
+          />
+        </label>
+        <p className="text-xs text-gray-500 -mt-1">Sunucun varsayilan olarak Kesfet sayfasinda listelenir.</p>
         <button disabled={loading || !name.trim()} className="btn-primary w-full">
           {loading ? "Olusturuluyor..." : "Olustur"}
         </button>

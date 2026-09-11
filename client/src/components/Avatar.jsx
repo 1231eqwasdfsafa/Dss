@@ -10,7 +10,7 @@ export default function Avatar({ username, color, status, size = 40, showStatus 
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
-        className="rounded-full flex items-center justify-center font-bold text-white select-none"
+        className="rounded-full flex items-center justify-center font-bold text-ink select-none"
         style={{ width: size, height: size, backgroundColor: color || "#5865F2", fontSize: size * 0.42 }}
       >
         {letter}

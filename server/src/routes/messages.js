@@ -5,9 +5,16 @@ import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 router.use(requireAuth);
 
-function serializeMessage(m) {
+export const MESSAGE_INCLUDE = {
+  author: true,
+  reactions: true,
+  poll: { include: { options: { include: { votes: true }, orderBy: { position: "asc" } } } },
+};
+
+export function serializeMessage(m) {
   return {
     id: m.id,
+    type: m.type,
     content: m.content,
     edited: m.edited,
     attachment: m.attachment,
@@ -19,9 +26,22 @@ function serializeMessage(m) {
       username: m.author.username,
       discriminator: m.author.discriminator,
       avatarColor: m.author.avatarColor,
+      isBot: m.author.isBot,
     },
     reactions: groupReactions(m.reactions),
+    poll: m.poll ? serializePoll(m.poll) : null,
   };
+}
+
+function serializePoll(poll) {
+  const options = poll.options.map((o) => ({
+    id: o.id,
+    text: o.text,
+    votes: o.votes.length,
+    voterIds: o.votes.map((v) => v.userId),
+  }));
+  const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+  return { id: poll.id, question: poll.question, options, totalVotes };
 }
 
 function groupReactions(reactions) {
@@ -54,7 +74,7 @@ router.get("/channel/:channelId", async (req, res) => {
       channelId: channel.id,
       ...(before ? { createdAt: { lt: new Date(before) } } : {}),
     },
-    include: { author: true, reactions: true },
+    include: MESSAGE_INCLUDE,
     orderBy: { createdAt: "desc" },
     take: 50,
   });
@@ -71,7 +91,7 @@ router.post("/channel/:channelId", async (req, res) => {
 
   const message = await prisma.message.create({
     data: { content: content.trim(), authorId: req.userId, channelId: channel.id },
-    include: { author: true, reactions: true },
+    include: MESSAGE_INCLUDE,
   });
   res.status(201).json({ message: serializeMessage(message) });
 });
@@ -88,7 +108,7 @@ router.patch("/:messageId", async (req, res) => {
   const updated = await prisma.message.update({
     where: { id: message.id },
     data: { content: content.trim(), edited: true },
-    include: { author: true, reactions: true },
+    include: MESSAGE_INCLUDE,
   });
   res.json({ message: serializeMessage(updated) });
 });
@@ -133,10 +153,23 @@ router.post("/:messageId/reactions", async (req, res) => {
 
   const message = await prisma.message.findUnique({
     where: { id: req.params.messageId },
-    include: { author: true, reactions: true },
+    include: MESSAGE_INCLUDE,
   });
   res.json({ message: serializeMessage(message) });
 });
 
-export { serializeMessage };
+// Report a message
+router.post("/:messageId/report", async (req, res) => {
+  const { reason } = req.body;
+  if (!reason?.trim()) return res.status(400).json({ error: "Rapor nedeni gerekli" });
+
+  const message = await prisma.message.findUnique({ where: { id: req.params.messageId } });
+  if (!message) return res.status(404).json({ error: "Mesaj bulunamadi" });
+
+  await prisma.report.create({
+    data: { messageId: message.id, reporterId: req.userId, reason: reason.trim() },
+  });
+  res.status(201).json({ ok: true });
+});
+
 export default router;

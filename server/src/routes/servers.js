@@ -32,12 +32,15 @@ router.get("/", async (req, res) => {
 
 // Create a server
 router.post("/", async (req, res) => {
-  const { name } = req.body;
+  const { name, description, category, tags } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: "Sunucu adi gerekli" });
 
   const server = await prisma.server.create({
     data: {
       name: name.trim(),
+      description: description?.trim() || null,
+      category: category?.trim() || null,
+      tags: Array.isArray(tags) ? tags.filter(Boolean).join(",") : null,
       ownerId: req.userId,
       inviteCode: genInviteCode(),
       members: { create: { userId: req.userId, role: "OWNER" } },
@@ -52,6 +55,44 @@ router.post("/", async (req, res) => {
   });
 
   res.status(201).json({ server: { ...server, myRole: "OWNER" } });
+});
+
+// Public-ish discovery listing (still requires login, no public/anon browsing yet)
+router.get("/discover", async (req, res) => {
+  const q = req.query.q?.toString().trim();
+  const category = req.query.category?.toString().trim();
+
+  const servers = await prisma.server.findMany({
+    where: {
+      isDiscoverable: true,
+      ...(category ? { category } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q } },
+              { description: { contains: q } },
+              { tags: { contains: q } },
+            ],
+          }
+        : {}),
+    },
+    include: { _count: { select: { members: true } } },
+  });
+
+  const results = servers
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      category: s.category,
+      tags: s.tags ? s.tags.split(",").filter(Boolean) : [],
+      inviteCode: s.inviteCode,
+      memberCount: s._count.members,
+      createdAt: s.createdAt,
+    }))
+    .sort((a, b) => b.memberCount - a.memberCount);
+
+  res.json({ servers: results });
 });
 
 // Join via invite code
@@ -155,6 +196,44 @@ router.post("/:serverId/leave", async (req, res) => {
     return res.status(400).json({ error: "Sahip sunucudan ayrilamaz, onun yerine silebilir" });
   }
   await prisma.serverMember.deleteMany({ where: { serverId: server.id, userId: req.userId } });
+  res.json({ ok: true });
+});
+
+// List open reports for this server (owner/admin only)
+router.get("/:serverId/reports", async (req, res) => {
+  const membership = await assertMember(req.params.serverId, req.userId);
+  if (!membership || membership.role === "MEMBER") {
+    return res.status(403).json({ error: "Raporlari gorme yetkin yok" });
+  }
+
+  const reports = await prisma.report.findMany({
+    where: { status: "OPEN", message: { channel: { serverId: req.params.serverId } } },
+    include: { message: { include: { author: true } }, reporter: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json({
+    reports: reports.map((r) => ({
+      id: r.id,
+      reason: r.reason,
+      createdAt: r.createdAt,
+      message: {
+        id: r.message.id,
+        content: r.message.content,
+        author: { id: r.message.author.id, username: r.message.author.username },
+      },
+      reporter: { id: r.reporter.id, username: r.reporter.username },
+    })),
+  });
+});
+
+// Dismiss/resolve a report (owner/admin only)
+router.post("/:serverId/reports/:reportId/resolve", async (req, res) => {
+  const membership = await assertMember(req.params.serverId, req.userId);
+  if (!membership || membership.role === "MEMBER") {
+    return res.status(403).json({ error: "Bu islemi yapma yetkin yok" });
+  }
+  await prisma.report.update({ where: { id: req.params.reportId }, data: { status: "RESOLVED" } });
   res.json({ ok: true });
 });
 

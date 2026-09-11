@@ -16,7 +16,48 @@ export const useAppStore = create((set, get) => ({
   messagesByDm: {},
   presence: {},
   typing: {}, // roomKey -> { userId: username }
-  view: "server", // "server" | "dm"
+  view: "server", // "server" | "dm" | "discover"
+  discoverResults: [],
+  reportsByServer: {},
+
+  selectDiscover: () => set({ view: "discover", activeServerId: null, activeDmId: null }),
+
+  fetchDiscover: async ({ q, category } = {}) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (category) params.set("category", category);
+    const { data } = await api.get(`/servers/discover?${params.toString()}`);
+    set({ discoverResults: data.servers });
+    return data.servers;
+  },
+
+  createPoll: async (channelId, question, options) => {
+    // The server broadcasts "message:new" to the channel room (including us),
+    // so the socket listener adds it — adding it here too would duplicate it.
+    const { data } = await api.post(`/polls/channel/${channelId}`, { question, options });
+    return data.message;
+  },
+
+  votePoll: async (messageId, optionId) => {
+    const { data } = await api.post(`/polls/${messageId}/vote`, { optionId });
+    get().updateMessageInStore(data.message);
+  },
+
+  reportMessage: async (messageId, reason) => {
+    await api.post(`/messages/${messageId}/report`, { reason });
+  },
+
+  fetchReports: async (serverId) => {
+    const { data } = await api.get(`/servers/${serverId}/reports`);
+    set((s) => ({ reportsByServer: { ...s.reportsByServer, [serverId]: data.reports } }));
+  },
+
+  resolveReport: async (serverId, reportId) => {
+    await api.post(`/servers/${serverId}/reports/${reportId}/resolve`);
+    set((s) => ({
+      reportsByServer: { ...s.reportsByServer, [serverId]: (s.reportsByServer[serverId] || []).filter((r) => r.id !== reportId) },
+    }));
+  },
 
   fetchServers: async () => {
     if (DEMO_MODE) {
@@ -28,7 +69,7 @@ export const useAppStore = create((set, get) => ({
     return data.servers;
   },
 
-  createServer: async (name) => {
+  createServer: async (name, extra = {}) => {
     if (DEMO_MODE) {
       const server = {
         id: `demo-server-${Date.now()}`,
@@ -41,7 +82,7 @@ export const useAppStore = create((set, get) => ({
       set((s) => ({ servers: [...s.servers, server] }));
       return server;
     }
-    const { data } = await api.post("/servers", { name });
+    const { data } = await api.post("/servers", { name, ...extra });
     set((s) => ({ servers: [...s.servers, data.server] }));
     getSocket()?.emit("server:join_room", data.server.id);
     return data.server;

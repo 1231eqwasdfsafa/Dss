@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { verifyToken } from "./utils/jwt.js";
 import { prisma } from "./lib/prisma.js";
-import { serializeMessage } from "./routes/messages.js";
+import { serializeMessage, MESSAGE_INCLUDE } from "./routes/messages.js";
 
 const onlineUsers = new Map(); // userId -> Set(socketId)
 
@@ -54,7 +54,7 @@ export function initSocket(httpServer, clientOrigin) {
 
           const message = await prisma.message.create({
             data: { content: content.trim(), authorId: userId, channelId },
-            include: { author: true, reactions: true },
+            include: MESSAGE_INCLUDE,
           });
           const payload = serializeMessage(message);
           io.to(`channel:${channelId}`).emit("message:new", payload);
@@ -67,7 +67,7 @@ export function initSocket(httpServer, clientOrigin) {
 
           const message = await prisma.message.create({
             data: { content: content.trim(), authorId: userId, dmChannelId },
-            include: { author: true, reactions: true },
+            include: MESSAGE_INCLUDE,
           });
           const payload = serializeMessage(message);
           io.to(`dm:${dmChannelId}`).emit("message:new", payload);

@@ -45,8 +45,10 @@ export default function UserPanel({ onOpenSettings }) {
       <button onClick={() => setStatusMenu((v) => !v)} className="flex items-center gap-2 flex-1 min-w-0 rounded hover:bg-base-750 px-1.5 py-1">
         <Avatar username={user.username} color={user.avatarColor} status={user.status} size={32} />
         <div className="min-w-0 text-left">
-          <div className="text-sm font-semibold text-white truncate">{user.username}</div>
-          <div className="text-xs text-gray-400 truncate">{user.customStatus || `#${user.discriminator}`}</div>
+          <div className="text-sm font-semibold text-ink truncate">{user.username}</div>
+          <div className={`text-xs text-gray-400 truncate ${user.customStatus ? "" : "mono"}`}>
+            {user.customStatus || `#${user.discriminator}`}
+          </div>
         </div>
       </button>
 

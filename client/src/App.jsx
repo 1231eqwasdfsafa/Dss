@@ -15,7 +15,7 @@ function ProtectedRoute({ children }) {
 function SplashScreen() {
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-base-900">
-      <div className="w-10 h-10 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+      <div className="w-10 h-10 rounded-full border-2 border-teal border-t-transparent animate-spin" />
     </div>
   );
 }

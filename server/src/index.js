@@ -11,6 +11,7 @@ import serverRoutes from "./routes/servers.js";
 import channelMessageRoutes from "./routes/messages.js";
 import dmRoutes from "./routes/dms.js";
 import userRoutes from "./routes/users.js";
+import pollRoutes from "./routes/polls.js";
 import { initSocket } from "./socket.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,6 +44,7 @@ app.use("/api/servers", serverRoutes);
 app.use("/api/messages", channelMessageRoutes);
 app.use("/api/dms", dmRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/polls", pollRoutes);
 
 // Serve the built frontend (client/dist) when present, so a single service
 // can host both the API and the SPA in production deployments.

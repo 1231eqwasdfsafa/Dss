@@ -8,7 +8,7 @@ export default function Modal({ title, onClose, children, width = "max-w-md" }) 
     >
       <div className={`w-full ${width} bg-base-800 rounded-xl shadow-panel mx-4`}>
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
-          <h2 className="text-lg font-bold text-white">{title}</h2>
+          <h2 className="text-lg font-bold text-ink">{title}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-200">
             <X size={20} />
           </button>
