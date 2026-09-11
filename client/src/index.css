@@ -35,6 +35,15 @@ body,
   height: 100%;
 }
 
+/* Mobile browsers count the address bar into 100vh, leaving real content
+   short by that much (forcing a scroll to reach the bottom). 100dvh tracks
+   the actual visible viewport; the 100vh line is a fallback for browsers
+   that don't support dvh yet. */
+.app-height {
+  height: 100vh;
+  height: 100dvh;
+}
+
 body {
   margin: 0;
   font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;

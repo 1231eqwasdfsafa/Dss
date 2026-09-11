@@ -26,7 +26,7 @@ export default function Register() {
   }
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-base-900 via-base-850 to-base-900">
+    <div className="app-height w-screen flex items-center justify-center bg-gradient-to-br from-base-900 via-base-850 to-base-900">
       <div className="w-full max-w-md bg-base-800 rounded-2xl shadow-panel p-8 animate-fade-in">
         <div className="flex items-center gap-2 justify-center mb-6">
           <div className="w-10 h-10 rounded-xl bg-teal flex items-center justify-center font-extrabold text-base-900 text-lg">N</div>

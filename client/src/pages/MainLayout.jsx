@@ -282,7 +282,7 @@ export default function MainLayout() {
 
   if (isMobile) {
     return (
-      <div className="h-screen w-screen flex flex-col bg-base-900 overflow-hidden">
+      <div className="app-height w-screen flex flex-col bg-base-900 overflow-hidden">
         <div className="flex-1 min-h-0 flex flex-col">
           {mobileScreen === "tabs" && mobileTab === "dm" && (
             <DmList
@@ -380,7 +380,7 @@ export default function MainLayout() {
   }
 
   return (
-    <div className="h-screen w-screen flex bg-base-900 overflow-hidden">
+    <div className="app-height w-screen flex bg-base-900 overflow-hidden">
       <ServerRail
         servers={servers}
         activeServerId={activeServerId}
