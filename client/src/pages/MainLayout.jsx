@@ -3,7 +3,7 @@ import { useAuthStore } from "../store/authStore";
 import { useAppStore } from "../store/appStore";
 import { getSocket } from "../lib/socket";
 import { DEMO_MODE } from "../lib/demo";
-import { ArrowLeft, UserPlus, Plus } from "../components/Icons.jsx";
+import { ArrowLeft, UserPlus, Plus, Hash, MessageCircle } from "../components/Icons.jsx";
 import useIsMobile from "../hooks/useIsMobile";
 
 import DesktopSidebar from "../components/DesktopSidebar.jsx";
@@ -280,6 +280,8 @@ export default function MainLayout() {
           onCreate={async (name, extra) => {
             const server = await createServer(name, extra);
             selectServer(server.id);
+            const firstText = server.channels.find((c) => c.type === "TEXT");
+            if (firstText) selectChannel(firstText.id);
           }}
         />
       )}
@@ -289,6 +291,8 @@ export default function MainLayout() {
           onJoin={async (inviteCode) => {
             const server = await joinServer(inviteCode);
             selectServer(server.id);
+            const firstText = server.channels.find((c) => c.type === "TEXT");
+            if (firstText) selectChannel(firstText.id);
           }}
         />
       )}
@@ -510,7 +514,13 @@ export default function MainLayout() {
       />
 
       {view === "discover" ? (
-        <DiscoverPage onJoined={(server) => selectServer(server.id)} />
+        <DiscoverPage
+          onJoined={(server) => {
+            selectServer(server.id);
+            const firstText = server.channels.find((c) => c.type === "TEXT");
+            if (firstText) selectChannel(firstText.id);
+          }}
+        />
       ) : (
         <div className="relative flex-1 flex min-w-0">
           {view === "server" ? (
@@ -528,7 +538,10 @@ export default function MainLayout() {
                 onToggleMembers={() => setMembersOpen((v) => !v)}
               />
             ) : (
-              <EmptyState text={activeServer ? "Bir kanal sec" : "Baslamak icin bir sunucu olustur ya da katil"} />
+              <EmptyState
+                icon={activeServer ? Hash : UserPlus}
+                text={activeServer ? "Sol taraftan bir kanal sec" : "Baslamak icin bir sunucu olustur ya da katil"}
+              />
             )
           ) : activeDm ? (
             <ChatArea
@@ -542,7 +555,7 @@ export default function MainLayout() {
               emptyHint="Sohbete baslamak icin bir mesaj gonder."
             />
           ) : (
-            <EmptyState text="Sohbete baslamak icin bir arkadas sec" />
+            <EmptyState icon={MessageCircle} text="Sohbete baslamak icin bir arkadas sec" />
           )}
 
           {view === "server" && activeServer && (
@@ -564,10 +577,14 @@ function BackBtn({ onClick }) {
   );
 }
 
-function EmptyState({ text }) {
+function EmptyState({ icon, text }) {
+  const Icon = icon || Hash;
   return (
-    <div className="flex-1 flex items-center justify-center text-gray-500 bg-base-750 px-6 text-center">
-      <p>{text}</p>
+    <div className="flex-1 flex flex-col items-center justify-center bg-base-750 px-6 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-base-800 border border-base-700 flex items-center justify-center mb-4">
+        <Icon size={26} className="text-gray-500" />
+      </div>
+      <p className="text-sm text-gray-500">{text}</p>
     </div>
   );
 }
