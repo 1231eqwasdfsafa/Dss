@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useAppStore } from "../store/appStore";
 import { getSocket } from "../lib/socket";
+import { DEMO_MODE } from "../lib/demo";
 
 import ServerRail from "../components/ServerRail.jsx";
 import ChannelSidebar from "../components/ChannelSidebar.jsx";
@@ -53,6 +54,7 @@ export default function MainLayout() {
     setPresence,
     setTyping,
     clearTyping,
+    sendDemoMessage,
   } = useAppStore();
 
   const [modal, setModal] = useState(null); // 'createServer' | 'joinServer' | 'createChannel' | 'invite' | 'newDm' | 'settings'
@@ -133,6 +135,11 @@ export default function MainLayout() {
   const canModerate = activeServer?.myRole === "OWNER" || activeServer?.myRole === "ADMIN";
 
   function sendMessage(content) {
+    if (DEMO_MODE) {
+      if (view === "server" && activeChannelId) sendDemoMessage(content, { channelId: activeChannelId });
+      else if (view === "dm" && activeDmId) sendDemoMessage(content, { dmChannelId: activeDmId });
+      return;
+    }
     const socket = getSocket();
     if (view === "server" && activeChannelId) {
       socket.emit("message:send", { channelId: activeChannelId, content });
@@ -142,6 +149,7 @@ export default function MainLayout() {
   }
 
   function typingStart() {
+    if (DEMO_MODE) return;
     const socket = getSocket();
     if (view === "server" && activeChannelId) {
       socket.emit("typing:start", { channelId: activeChannelId, username: user.username });
@@ -151,6 +159,7 @@ export default function MainLayout() {
   }
 
   function typingStop() {
+    if (DEMO_MODE) return;
     const socket = getSocket();
     if (view === "server" && activeChannelId) {
       socket.emit("typing:stop", { channelId: activeChannelId });
@@ -161,13 +170,14 @@ export default function MainLayout() {
 
   async function handleDeleteMessage(messageId) {
     await deleteMessage(messageId);
-    const socket = getSocket();
-    socket.emit("message:delete", { messageId, channelId: activeChannelId, dmChannelId: activeDmId });
     removeMessageFromStore(messageId, activeChannelId, activeDmId);
+    if (DEMO_MODE) return;
+    getSocket().emit("message:delete", { messageId, channelId: activeChannelId, dmChannelId: activeDmId });
   }
 
   async function handleEditMessage(messageId, content) {
     await editMessage(messageId, content);
+    if (DEMO_MODE) return;
     const socket = getSocket();
     const list = activeChannelId ? messagesByChannel[activeChannelId] : messagesByDm[activeDmId];
     const updated = list?.find((m) => m.id === messageId);
