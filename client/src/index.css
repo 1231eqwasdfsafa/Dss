@@ -23,10 +23,26 @@
   .mono {
     @apply font-mono tabular-nums;
   }
+  /* Standard treatment for icon-only buttons (back arrows, close, toggles)
+     so every one of them signals "clickable" the same way. */
+  .icon-btn {
+    @apply w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-base-700 hover:text-ink transition-colors;
+  }
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Buttons/links have no built-in focus style once :focus-visible replaces
+   the browser's default outline handling — without this, keyboard focus is
+   invisible. Inputs/selects keep their own border-color focus state instead
+   (see .input) so they're excluded here. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #6bae7e;
+  outline-offset: 2px;
 }
 
 html,

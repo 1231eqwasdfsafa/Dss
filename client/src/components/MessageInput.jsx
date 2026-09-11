@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, Send, Smile, BarChart } from "./Icons.jsx";
+import { Plus, Send, BarChart } from "./Icons.jsx";
 
 export default function MessageInput({ placeholder, onSend, onTypingStart, onTypingStop, onOpenPoll }) {
   const [value, setValue] = useState("");
@@ -33,19 +33,19 @@ export default function MessageInput({ placeholder, onSend, onTypingStart, onTyp
 
   return (
     <form onSubmit={handleSubmit} className="px-4 pb-6 pt-1 shrink-0">
-      <div className="flex items-center gap-2 bg-base-700 rounded-xl px-3 py-2.5 relative">
+      <div className="flex items-center gap-1.5 bg-base-700 rounded-xl pl-2 pr-2.5 py-2 relative">
         {onOpenPoll && (
           <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => setShowMenu((v) => !v)}
-              className="text-gray-400 hover:text-ink"
               title="Ekle"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-base-600 hover:text-ink transition-colors"
             >
-              <Plus size={22} className={`transition-transform ${showMenu ? "rotate-45" : ""}`} />
+              <Plus size={20} className={`transition-transform ${showMenu ? "rotate-45" : ""}`} />
             </button>
             {showMenu && (
-              <div className="absolute bottom-10 left-0 bg-base-750 border border-base-600 rounded-lg shadow-panel py-1.5 w-48 z-20 animate-fade-in">
+              <div className="absolute bottom-11 left-0 bg-base-750 border border-base-600 rounded-lg shadow-panel py-1.5 w-48 z-20 animate-fade-in">
                 <button
                   type="button"
                   onClick={() => {
@@ -65,13 +65,14 @@ export default function MessageInput({ placeholder, onSend, onTypingStart, onTyp
           value={value}
           onChange={handleChange}
           placeholder={placeholder}
-          className="flex-1 bg-transparent outline-none text-[15px] text-gray-100 placeholder:text-gray-500"
+          className="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-gray-100 placeholder:text-gray-500 px-1"
         />
-        <button type="button" className="text-gray-400 hover:text-gray-200 shrink-0">
-          <Smile size={22} />
-        </button>
-        <button type="submit" className="text-teal hover:text-ink shrink-0 disabled:opacity-40" disabled={!value.trim()}>
-          <Send size={20} />
+        <button
+          type="submit"
+          disabled={!value.trim()}
+          className="w-8 h-8 flex items-center justify-center rounded-lg shrink-0 text-teal enabled:hover:bg-base-600 hover:text-ink transition-colors disabled:opacity-40"
+        >
+          <Send size={18} />
         </button>
       </div>
     </form>

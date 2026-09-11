@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal.jsx";
+import Select from "../Select.jsx";
 
 const CATEGORIES = ["Sohbet", "Oyun", "Sanat", "Muzik", "Teknoloji", "Egitim", "Diger"];
 
@@ -44,13 +45,13 @@ export default function CreateServerModal({ onClose, onCreate }) {
         </label>
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Kategori</span>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
+          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Kisa aciklama (opsiyonel)</span>

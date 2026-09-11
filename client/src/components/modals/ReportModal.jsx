@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal.jsx";
+import Select from "../Select.jsx";
 
 const REASONS = ["Taciz veya zorbalik", "Spam", "Uygunsuz icerik", "Yasa disi icerik", "Diger"];
 
@@ -24,13 +25,13 @@ export default function ReportModal({ onClose, onSubmit }) {
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Neden</span>
-          <select value={reason} onChange={(e) => setReason(e.target.value)} className="input">
+          <Select value={reason} onChange={(e) => setReason(e.target.value)}>
             {REASONS.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Detay (opsiyonel)</span>

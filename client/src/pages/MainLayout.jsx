@@ -490,7 +490,7 @@ export default function MainLayout() {
 
 function BackBtn({ onClick }) {
   return (
-    <button onClick={onClick} className="w-8 h-8 -ml-1 flex items-center justify-center text-gray-400 hover:text-ink shrink-0">
+    <button onClick={onClick} className="icon-btn -ml-1 shrink-0">
       <ArrowLeft size={20} />
     </button>
   );

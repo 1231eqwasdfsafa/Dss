@@ -26,7 +26,7 @@ export default function MemberList({ open, onClose, members, presence, onStartDm
       >
         <div className="flex items-center justify-between px-2 mb-2">
           <span className="text-xs font-bold uppercase tracking-wide text-gray-500">Uyeler</span>
-          <button onClick={onClose} className="text-gray-500 hover:text-ink">
+          <button onClick={onClose} className="icon-btn !w-7 !h-7">
             <X size={16} />
           </button>
         </div>
