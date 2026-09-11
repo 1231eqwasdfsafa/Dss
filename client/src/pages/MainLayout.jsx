@@ -6,8 +6,7 @@ import { DEMO_MODE } from "../lib/demo";
 import { ArrowLeft, UserPlus, Plus } from "../components/Icons.jsx";
 import useIsMobile from "../hooks/useIsMobile";
 
-import ServerRail from "../components/ServerRail.jsx";
-import ChannelSidebar from "../components/ChannelSidebar.jsx";
+import DesktopSidebar from "../components/DesktopSidebar.jsx";
 import ServerChannelList from "../components/ServerChannelList.jsx";
 import DmList from "../components/DmList.jsx";
 import ChatArea from "../components/ChatArea.jsx";
@@ -485,36 +484,30 @@ export default function MainLayout() {
 
   return (
     <div className="app-height w-screen flex bg-base-900 overflow-hidden">
-      <ServerRail
+      <DesktopSidebar
         servers={servers}
         activeServerId={activeServerId}
         view={view}
+        server={activeServer}
+        activeChannelId={activeChannelId}
         onSelectServer={selectServer}
         onSelectHome={() => selectDm(activeDmId || dms[0]?.id || null)}
+        onSelectChannel={selectChannel}
+        onCreateChannel={() => setModal("createChannel")}
+        onOpenInvite={() => setModal("invite")}
+        onOpenReports={() => setModal("reports")}
+        onLeaveOrDelete={handleLeaveOrDelete}
+        dms={dms}
+        activeDmId={activeDmId}
+        onSelectDm={selectDm}
+        onNewDm={() => setModal("newDm")}
+        presence={presence}
         onCreate={() => setModal("createServer")}
         onJoin={() => setModal("joinServer")}
         onDiscover={selectDiscover}
         onOpenSettings={() => setModal("settings")}
         onOpenProfile={() => openProfile(user.id)}
       />
-
-      {view !== "discover" && (
-        <ChannelSidebar
-          view={view}
-          server={activeServer}
-          activeChannelId={activeChannelId}
-          onSelectChannel={selectChannel}
-          onCreateChannel={() => setModal("createChannel")}
-          onOpenInvite={() => setModal("invite")}
-          onLeaveOrDelete={handleLeaveOrDelete}
-          dms={dms}
-          activeDmId={activeDmId}
-          onSelectDm={selectDm}
-          onNewDm={() => setModal("newDm")}
-          presence={presence}
-          onOpenReports={() => setModal("reports")}
-        />
-      )}
 
       {view === "discover" ? (
         <DiscoverPage onJoined={(server) => selectServer(server.id)} />
