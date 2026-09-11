@@ -3,7 +3,7 @@ import { useAuthStore } from "../store/authStore";
 import { useAppStore } from "../store/appStore";
 import { getSocket } from "../lib/socket";
 import { DEMO_MODE } from "../lib/demo";
-import { ArrowLeft } from "../components/Icons.jsx";
+import { ArrowLeft, UserPlus, Plus } from "../components/Icons.jsx";
 import useIsMobile from "../hooks/useIsMobile";
 
 import ServerRail from "../components/ServerRail.jsx";
@@ -14,7 +14,7 @@ import ChatArea from "../components/ChatArea.jsx";
 import MemberList from "../components/MemberList.jsx";
 import DiscoverPage from "../components/DiscoverPage.jsx";
 import MobileTabBar from "../components/MobileTabBar.jsx";
-import MobileServerList from "../components/MobileServerList.jsx";
+import MobileServerRail from "../components/MobileServerRail.jsx";
 import MobileAccountScreen from "../components/MobileAccountScreen.jsx";
 
 import CreateServerModal from "../components/modals/CreateServerModal.jsx";
@@ -83,7 +83,7 @@ export default function MainLayout() {
   // deep the drill-down goes (list -> channel list -> chat), independent of
   // the desktop layout which shows everything at once.
   const [mobileTab, setMobileTab] = useState("servers"); // 'dm' | 'servers' | 'discover' | 'account'
-  const [mobileScreen, setMobileScreen] = useState("tabs"); // 'tabs' | 'channelList' | 'chat'
+  const [mobileScreen, setMobileScreen] = useState("tabs"); // 'tabs' | 'chat'
   const [navDirection, setNavDirection] = useState("forward"); // drives the slide-in animation direction
   function goTo(screen, direction) {
     setNavDirection(direction);
@@ -255,8 +255,24 @@ export default function MainLayout() {
         <CreatePollModal onClose={() => setModal(null)} onCreate={(question, options) => handleCreatePoll(question, options)} />
       )}
       {modal === "reports" && activeServer && <ReportsModal serverId={activeServer.id} onClose={() => setModal(null)} />}
-      {modal === "createServer" && <CreateServerModal onClose={() => setModal(null)} onCreate={createServer} />}
-      {modal === "joinServer" && <JoinServerModal onClose={() => setModal(null)} onJoin={joinServer} />}
+      {modal === "createServer" && (
+        <CreateServerModal
+          onClose={() => setModal(null)}
+          onCreate={async (name, extra) => {
+            const server = await createServer(name, extra);
+            selectServer(server.id);
+          }}
+        />
+      )}
+      {modal === "joinServer" && (
+        <JoinServerModal
+          onClose={() => setModal(null)}
+          onJoin={async (inviteCode) => {
+            const server = await joinServer(inviteCode);
+            selectServer(server.id);
+          }}
+        />
+      )}
       {modal === "createChannel" && activeServer && (
         <CreateChannelModal onClose={() => setModal(null)} onCreate={(name, type) => createChannel(activeServer.id, name, type)} />
       )}
@@ -322,12 +338,46 @@ export default function MainLayout() {
           )}
 
           {mobileScreen === "tabs" && mobileTab === "servers" && (
-            <MobileServerList
-              servers={servers}
-              onSelect={(id) => { selectServer(id); goTo("channelList", "forward"); }}
-              onCreate={() => setModal("createServer")}
-              onJoin={() => setModal("joinServer")}
-            />
+            <div className="flex-1 min-h-0 flex">
+              <MobileServerRail
+                servers={servers}
+                activeServerId={activeServerId}
+                onSelectServer={selectServer}
+                onCreate={() => setModal("createServer")}
+                onJoin={() => setModal("joinServer")}
+              />
+              <div className="flex-1 min-w-0 flex flex-col">
+                {activeServer ? (
+                  <div key={activeServer.id} className="flex-1 min-h-0 flex flex-col animate-fade-in">
+                    <ServerChannelList
+                      server={activeServer}
+                      activeChannelId={activeChannelId}
+                      onSelectChannel={(id) => { selectChannel(id); goTo("chat", "forward"); }}
+                      onCreateChannel={() => setModal("createChannel")}
+                      onOpenInvite={() => setModal("invite")}
+                      onOpenReports={() => setModal("reports")}
+                      onLeaveOrDelete={handleLeaveOrDelete}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
+                    <div className="w-16 h-16 rounded-2xl bg-base-800 border border-base-700 flex items-center justify-center mb-4">
+                      <UserPlus size={26} className="text-gray-500" />
+                    </div>
+                    <p className="text-sm text-gray-500 mb-1">Henuz bir sunucun yok.</p>
+                    <p className="text-xs text-gray-600 mb-5">Yeni bir sunucu kur ya da davet koduyla katil.</p>
+                    <div className="flex flex-col gap-1 w-full max-w-[200px]">
+                      <button onClick={() => setModal("createServer")} className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl hover:bg-base-800 text-teal text-sm font-medium">
+                        <Plus size={16} /> Sunucu Olustur
+                      </button>
+                      <button onClick={() => setModal("joinServer")} className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl hover:bg-base-800 text-teal text-sm font-medium">
+                        <UserPlus size={16} /> Davet Koduyla Katil
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {mobileScreen === "tabs" && mobileTab === "discover" && (
@@ -335,27 +385,11 @@ export default function MainLayout() {
               onJoined={(server) => {
                 selectServer(server.id);
                 setMobileTab("servers");
-                goTo("channelList", "forward");
               }}
             />
           )}
 
           {mobileScreen === "tabs" && mobileTab === "account" && <MobileAccountScreen onOpenSettings={() => setModal("settings")} />}
-
-          {mobileScreen === "channelList" && activeServer && (
-            <div key={`channels-${activeServer.id}`} className={`flex-1 min-h-0 flex flex-col ${slideClass}`}>
-              <ServerChannelList
-                server={activeServer}
-                activeChannelId={activeChannelId}
-                onSelectChannel={(id) => { selectChannel(id); goTo("chat", "forward"); }}
-                onCreateChannel={() => setModal("createChannel")}
-                onOpenInvite={() => setModal("invite")}
-                onOpenReports={() => setModal("reports")}
-                onLeaveOrDelete={handleLeaveOrDelete}
-                headerLeft={<BackBtn onClick={() => goTo("tabs", "back")} />}
-              />
-            </div>
-          )}
 
           {mobileScreen === "chat" && mobileTab === "servers" && activeChannel && (
             <div key={`chat-${activeChannel.id}`} className={`relative flex-1 flex min-w-0 ${slideClass}`}>
@@ -370,7 +404,7 @@ export default function MainLayout() {
                 showMemberToggle
                 membersOpen={membersOpen}
                 onToggleMembers={() => setMembersOpen((v) => !v)}
-                headerLeft={<BackBtn onClick={() => goTo("channelList", "back")} />}
+                headerLeft={<BackBtn onClick={() => goTo("tabs", "back")} />}
               />
               {activeServer && (
                 <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onStartDm={handleStartDm} />

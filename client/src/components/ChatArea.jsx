@@ -25,10 +25,15 @@ export default function ChatArea({
   onToggleMembers,
   headerLeft,
 }) {
-  const bottomRef = useRef(null);
+  const listRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // A plain scrollTop set (not scrollIntoView) — scrollIntoView can nudge
+    // an ancestor's horizontal scroll position too when that ancestor's
+    // scrollable width is inflated by an off-screen sibling (e.g. the
+    // translated-away member list drawer), clipping the whole screen.
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [messages?.length]);
 
   const typingNames = Object.values(typingUsers || {});
@@ -60,7 +65,7 @@ export default function ChatArea({
         <VoiceChannelPlaceholder title={title} />
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto py-3 flex flex-col">
+          <div ref={listRef} className="flex-1 overflow-y-auto py-3 flex flex-col">
             {messages?.length === 0 && (
               <div className="px-4 py-8 text-gray-500 text-sm">{emptyHint || "Henuz mesaj yok. Ilk mesaji sen gonder!"}</div>
             )}
@@ -87,7 +92,6 @@ export default function ChatArea({
                 />
               );
             })}
-            <div ref={bottomRef} />
           </div>
 
           <div className="h-5 px-4 text-xs text-gray-400 italic">
