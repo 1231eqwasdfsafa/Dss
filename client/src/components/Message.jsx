@@ -25,27 +25,28 @@ export default function Message({ message, isOwn, canModerate, currentUserId, on
         setHover(false);
         setShowEmojiPicker(false);
       }}
-      className={`group relative flex gap-2.5 px-4 py-0.5 hover:bg-white/[0.02] ${grouped ? "mt-0" : "mt-2.5"}`}
+      className={`group flex gap-2 px-3 sm:px-4 ${isOwn ? "justify-end" : "justify-start"} ${grouped ? "mt-0.5" : "mt-2.5"}`}
     >
-      <div className="w-9 shrink-0">
-        {!grouped && <Avatar username={message.author.username} color={message.author.avatarColor} size={34} showStatus={false} />}
-      </div>
+      {!isOwn && (
+        <div className="w-8 shrink-0">
+          {!grouped && <Avatar username={message.author.username} color={message.author.avatarColor} size={30} showStatus={false} />}
+        </div>
+      )}
 
-      <div className="flex-1 min-w-0">
-        {!grouped && (
-          <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-ink text-sm">{message.author.username}</span>
+      <div className={`relative flex flex-col min-w-0 max-w-[80%] sm:max-w-md ${isOwn ? "items-end" : "items-start"}`}>
+        {!grouped && !isOwn && (
+          <div className="flex items-baseline gap-1.5 mb-0.5 px-1">
+            <span className="font-semibold text-ink text-[13px]">{message.author.username}</span>
             {message.author.isBot && (
               <span className="text-[10px] font-bold text-base-900 bg-amber rounded px-1.5 py-[1px] tracking-wide">BOT</span>
             )}
-            <span className="text-[11px] text-gray-500 mono">{format(new Date(message.createdAt), "d MMM HH:mm")}</span>
           </div>
         )}
 
         {isPoll ? (
           <PollCard poll={message.poll} currentUserId={currentUserId} onVote={(optionId) => onVotePoll(message.id, optionId)} />
         ) : editing ? (
-          <div className="flex flex-col gap-1.5 mt-0.5">
+          <div className="flex flex-col gap-1.5 w-64 max-w-full">
             <input
               autoFocus
               value={draft}
@@ -61,18 +62,25 @@ export default function Message({ message, isOwn, canModerate, currentUserId, on
             </span>
           </div>
         ) : (
-          <p className="text-[15px] text-gray-100 leading-relaxed break-words whitespace-pre-wrap">
-            {message.content}
-            {message.edited && <span className="text-[10px] text-gray-500 ml-1">(duzenlendi)</span>}
-          </p>
+          <div
+            className={`rounded-2xl px-3.5 py-2 ${
+              isOwn ? "bg-teal/20 border border-teal/30" : "bg-base-800 border border-base-600"
+            }`}
+          >
+            <p className="text-[15px] text-gray-100 leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
+            {message.attachment && (
+              <img src={message.attachment} alt="attachment" className="mt-2 max-w-[240px] rounded-lg border border-base-700" />
+            )}
+          </div>
         )}
 
-        {!isPoll && message.attachment && (
-          <img src={message.attachment} alt="attachment" className="mt-2 max-w-xs max-h-72 rounded-lg border border-base-700" />
-        )}
+        <div className={`flex items-center gap-1.5 mt-1 px-1 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
+          <span className="text-[10px] text-gray-500 mono">{format(new Date(message.createdAt), "HH:mm")}</span>
+          {message.edited && <span className="text-[10px] text-gray-500">duzenlendi</span>}
+        </div>
 
         {!isPoll && message.reactions?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-1.5">
+          <div className={`flex flex-wrap gap-1.5 mt-0.5 ${isOwn ? "justify-end" : "justify-start"}`}>
             {message.reactions.map((r) => (
               <button
                 key={r.emoji}
@@ -85,56 +93,54 @@ export default function Message({ message, isOwn, canModerate, currentUserId, on
             ))}
           </div>
         )}
-      </div>
 
-      {!grouped ? null : (
-        <div className="absolute left-4 top-0.5 text-[10px] text-gray-500 mono opacity-0 group-hover:opacity-100 w-10 text-center">
-          {format(new Date(message.createdAt), "HH:mm")}
-        </div>
-      )}
-
-      {hover && !editing && (
-        <div className="absolute -top-3 right-4 flex bg-base-750 border border-base-600 rounded-lg shadow-panel overflow-visible z-10">
-          {!isPoll && (
-            <div className="relative">
-              <ActionBtn onClick={() => setShowEmojiPicker((v) => !v)}>
-                <Smile size={16} />
+        {hover && !editing && (
+          <div
+            className={`absolute -top-3 flex bg-base-750 border border-base-600 rounded-lg shadow-panel overflow-visible z-10 ${
+              isOwn ? "right-0" : "left-0"
+            }`}
+          >
+            {!isPoll && (
+              <div className="relative">
+                <ActionBtn onClick={() => setShowEmojiPicker((v) => !v)}>
+                  <Smile size={16} />
+                </ActionBtn>
+                {showEmojiPicker && (
+                  <div className={`absolute top-8 bg-base-750 border border-base-600 rounded-lg shadow-panel p-1.5 flex gap-1 z-20 ${isOwn ? "right-0" : "left-0"}`}>
+                    {QUICK_EMOJIS.map((e) => (
+                      <button
+                        key={e}
+                        onClick={() => {
+                          onReact(message.id, e);
+                          setShowEmojiPicker(false);
+                        }}
+                        className="w-7 h-7 flex items-center justify-center hover:bg-base-700 rounded text-base"
+                      >
+                        {e}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {isOwn && !isPoll && (
+              <ActionBtn onClick={() => setEditing(true)}>
+                <Edit size={16} />
               </ActionBtn>
-              {showEmojiPicker && (
-                <div className="absolute right-0 top-8 bg-base-750 border border-base-600 rounded-lg shadow-panel p-1.5 flex gap-1 z-20">
-                  {QUICK_EMOJIS.map((e) => (
-                    <button
-                      key={e}
-                      onClick={() => {
-                        onReact(message.id, e);
-                        setShowEmojiPicker(false);
-                      }}
-                      className="w-7 h-7 flex items-center justify-center hover:bg-base-700 rounded text-base"
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          {isOwn && !isPoll && (
-            <ActionBtn onClick={() => setEditing(true)}>
-              <Edit size={16} />
-            </ActionBtn>
-          )}
-          {!isOwn && (
-            <ActionBtn onClick={() => onReport(message.id)}>
-              <Flag size={16} />
-            </ActionBtn>
-          )}
-          {(isOwn || canModerate) && (
-            <ActionBtn danger onClick={() => onDelete(message.id)}>
-              <Trash size={16} />
-            </ActionBtn>
-          )}
-        </div>
-      )}
+            )}
+            {!isOwn && (
+              <ActionBtn onClick={() => onReport(message.id)}>
+                <Flag size={16} />
+              </ActionBtn>
+            )}
+            {(isOwn || canModerate) && (
+              <ActionBtn danger onClick={() => onDelete(message.id)}>
+                <Trash size={16} />
+              </ActionBtn>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
