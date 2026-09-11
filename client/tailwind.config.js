@@ -5,38 +5,38 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Control-room neutral scale. Kept the old "base-NNN" naming so
-        // existing component classes didn't need renaming, only remapping.
+        // Warm mocha/terracotta dark scale. Kept the old "base-NNN" naming
+        // so existing component classes didn't need renaming, only remapping.
         base: {
-          900: "#0E1013", // ground
-          850: "#121519",
-          800: "#16191D", // surface / panel
-          750: "#1A1E23",
-          700: "#1E2228", // hover surface / inputs
-          600: "#262B32", // borders
-          500: "#323841", // stronger borders / dividers
+          900: "#18130F", // ground
+          850: "#1C1611",
+          800: "#231C15", // surface / panel
+          750: "#2A2118",
+          700: "#33281D", // hover surface / inputs
+          600: "#3F3125", // borders
+          500: "#4C3B2C", // stronger borders / dividers
         },
-        ink: "#EDEBE6",
+        ink: "#F2E9DE",
         amber: {
-          DEFAULT: "#E8A23D",
-          hover: "#F0B45E",
-          soft: "#C98A30",
+          DEFAULT: "#D98A4C",
+          hover: "#E6A268",
+          soft: "#B36F3A",
         },
         teal: {
-          DEFAULT: "#4C9C90",
-          soft: "#3D7D73",
+          DEFAULT: "#6BAE7E",
+          soft: "#548F65",
         },
-        warn: "#C1554A",
+        warn: "#C2604A",
         // Presence colors
-        online: "#4C9C90",
-        idle: "#8A7A5C",
-        dnd: "#C1554A",
+        online: "#6BAE7E",
+        idle: "#B08B5C",
+        dnd: "#C2604A",
         // Legacy alias so any missed spot still renders sanely instead of
         // Tailwind silently dropping the class.
         accent: {
-          DEFAULT: "#E8A23D",
-          hover: "#F0B45E",
-          soft: "#C98A30",
+          DEFAULT: "#D98A4C",
+          hover: "#E6A268",
+          soft: "#B36F3A",
         },
       },
       fontFamily: {

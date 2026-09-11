@@ -370,6 +370,7 @@ export default function MainLayout() {
               setMobileTab(tab);
               setMobileScreen("tabs");
             }}
+            onCreate={() => setModal("createServer")}
           />
         )}
 

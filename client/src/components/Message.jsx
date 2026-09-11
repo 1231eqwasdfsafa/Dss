@@ -64,7 +64,7 @@ export default function Message({ message, isOwn, canModerate, currentUserId, on
         ) : (
           <div
             className={`rounded-2xl px-3.5 py-2 ${
-              isOwn ? "bg-teal/20 border border-teal/30" : "bg-base-800 border border-base-600"
+              isOwn ? "bg-amber-soft/90 text-ink" : "bg-base-800 border border-base-600"
             }`}
           >
             <p className="text-[15px] text-gray-100 leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
