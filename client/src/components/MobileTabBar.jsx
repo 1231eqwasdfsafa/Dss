@@ -33,7 +33,7 @@ export default function MobileTabBar({ active, onChange, onCreate }) {
 
         <button
           onClick={onCreate}
-          title="Sunucu olustur"
+          title="Hub"
           className="absolute left-1/2 -translate-x-1/2 -top-5 w-12 h-12 rounded-full bg-amber text-base-900 shadow-panel flex items-center justify-center hover:bg-amber-hover transition-colors"
         >
           <Plus size={22} strokeWidth={2.5} />

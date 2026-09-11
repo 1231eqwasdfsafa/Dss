@@ -26,6 +26,8 @@ import SettingsModal from "../components/modals/SettingsModal.jsx";
 import CreatePollModal from "../components/modals/CreatePollModal.jsx";
 import ReportModal from "../components/modals/ReportModal.jsx";
 import ReportsModal from "../components/modals/ReportsModal.jsx";
+import HubSheet from "../components/modals/HubSheet.jsx";
+import AppMarketModal from "../components/modals/AppMarketModal.jsx";
 
 export default function MainLayout() {
   const { user, setPresence: setOwnPresence } = useAuthStore();
@@ -82,6 +84,11 @@ export default function MainLayout() {
   // the desktop layout which shows everything at once.
   const [mobileTab, setMobileTab] = useState("servers"); // 'dm' | 'servers' | 'discover' | 'account'
   const [mobileScreen, setMobileScreen] = useState("tabs"); // 'tabs' | 'channelList' | 'chat'
+  const [navDirection, setNavDirection] = useState("forward"); // drives the slide-in animation direction
+  function goTo(screen, direction) {
+    setNavDirection(direction);
+    setMobileScreen(screen);
+  }
 
   useEffect(() => {
     fetchServers();
@@ -221,7 +228,7 @@ export default function MainLayout() {
     if (!confirmed) return;
     if (isOwner) await deleteServer(activeServer.id);
     else await leaveServer(activeServer.id);
-    setMobileScreen("tabs");
+    goTo("tabs", "back");
   }
 
   async function handleStartDm(userInfo) {
@@ -229,7 +236,7 @@ export default function MainLayout() {
     selectDm(dm.id);
     if (isMobile) {
       setMobileTab("dm");
-      setMobileScreen("chat");
+      goTo("chat", "forward");
     }
   }
 
@@ -256,6 +263,24 @@ export default function MainLayout() {
       {modal === "invite" && activeServer && <InviteModal server={activeServer} onClose={() => setModal(null)} />}
       {modal === "newDm" && <NewDmModal onClose={() => setModal(null)} onStart={handleStartDm} />}
       {modal === "settings" && <SettingsModal onClose={() => setModal(null)} />}
+      {modal === "appMarket" && <AppMarketModal onClose={() => setModal(null)} />}
+      {modal === "hub" && (
+        <HubSheet
+          onClose={() => setModal(null)}
+          onOpenAppMarket={() => setModal("appMarket")}
+          onOpenDiscover={() => {
+            setModal(null);
+            if (isMobile) {
+              setMobileTab("discover");
+              setMobileScreen("tabs");
+            } else {
+              selectDiscover();
+            }
+          }}
+          onCreateServer={() => setModal("createServer")}
+          onJoinServer={() => setModal("joinServer")}
+        />
+      )}
       {reportTarget && (
         <ReportModal
           onClose={() => setReportTarget(null)}
@@ -281,14 +306,16 @@ export default function MainLayout() {
   };
 
   if (isMobile) {
+    const slideClass = navDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left";
+
     return (
       <div className="app-height w-screen flex flex-col bg-base-900 overflow-hidden">
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {mobileScreen === "tabs" && mobileTab === "dm" && (
             <DmList
               dms={dms}
               activeDmId={activeDmId}
-              onSelectDm={(id) => { selectDm(id); setMobileScreen("chat"); }}
+              onSelectDm={(id) => { selectDm(id); goTo("chat", "forward"); }}
               onNewDm={() => setModal("newDm")}
               presence={presence}
             />
@@ -297,7 +324,7 @@ export default function MainLayout() {
           {mobileScreen === "tabs" && mobileTab === "servers" && (
             <MobileServerList
               servers={servers}
-              onSelect={(id) => { selectServer(id); setMobileScreen("channelList"); }}
+              onSelect={(id) => { selectServer(id); goTo("channelList", "forward"); }}
               onCreate={() => setModal("createServer")}
               onJoin={() => setModal("joinServer")}
             />
@@ -308,7 +335,7 @@ export default function MainLayout() {
               onJoined={(server) => {
                 selectServer(server.id);
                 setMobileTab("servers");
-                setMobileScreen("channelList");
+                goTo("channelList", "forward");
               }}
             />
           )}
@@ -316,20 +343,22 @@ export default function MainLayout() {
           {mobileScreen === "tabs" && mobileTab === "account" && <MobileAccountScreen onOpenSettings={() => setModal("settings")} />}
 
           {mobileScreen === "channelList" && activeServer && (
-            <ServerChannelList
-              server={activeServer}
-              activeChannelId={activeChannelId}
-              onSelectChannel={(id) => { selectChannel(id); setMobileScreen("chat"); }}
-              onCreateChannel={() => setModal("createChannel")}
-              onOpenInvite={() => setModal("invite")}
-              onOpenReports={() => setModal("reports")}
-              onLeaveOrDelete={handleLeaveOrDelete}
-              headerLeft={<BackBtn onClick={() => setMobileScreen("tabs")} />}
-            />
+            <div key={`channels-${activeServer.id}`} className={`flex-1 min-h-0 flex flex-col ${slideClass}`}>
+              <ServerChannelList
+                server={activeServer}
+                activeChannelId={activeChannelId}
+                onSelectChannel={(id) => { selectChannel(id); goTo("chat", "forward"); }}
+                onCreateChannel={() => setModal("createChannel")}
+                onOpenInvite={() => setModal("invite")}
+                onOpenReports={() => setModal("reports")}
+                onLeaveOrDelete={handleLeaveOrDelete}
+                headerLeft={<BackBtn onClick={() => goTo("tabs", "back")} />}
+              />
+            </div>
           )}
 
           {mobileScreen === "chat" && mobileTab === "servers" && activeChannel && (
-            <div className="relative flex-1 flex min-w-0">
+            <div key={`chat-${activeChannel.id}`} className={`relative flex-1 flex min-w-0 ${slideClass}`}>
               <ChatArea
                 {...chatProps}
                 title={activeChannel.name}
@@ -341,7 +370,7 @@ export default function MainLayout() {
                 showMemberToggle
                 membersOpen={membersOpen}
                 onToggleMembers={() => setMembersOpen((v) => !v)}
-                headerLeft={<BackBtn onClick={() => setMobileScreen("channelList")} />}
+                headerLeft={<BackBtn onClick={() => goTo("channelList", "back")} />}
               />
               {activeServer && (
                 <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onStartDm={handleStartDm} />
@@ -350,16 +379,18 @@ export default function MainLayout() {
           )}
 
           {mobileScreen === "chat" && mobileTab === "dm" && activeDm && (
-            <ChatArea
-              {...chatProps}
-              title={activeDm.user?.username || "Bilinmeyen"}
-              type="TEXT"
-              messages={messagesByDm[activeDmId] || []}
-              canModerate={false}
-              typingUsers={typing[activeDmId]}
-              emptyHint="Sohbete baslamak icin bir mesaj gonder."
-              headerLeft={<BackBtn onClick={() => setMobileScreen("tabs")} />}
-            />
+            <div key={`dm-${activeDm.id}`} className={`flex-1 min-h-0 flex flex-col ${slideClass}`}>
+              <ChatArea
+                {...chatProps}
+                title={activeDm.user?.username || "Bilinmeyen"}
+                type="TEXT"
+                messages={messagesByDm[activeDmId] || []}
+                canModerate={false}
+                typingUsers={typing[activeDmId]}
+                emptyHint="Sohbete baslamak icin bir mesaj gonder."
+                headerLeft={<BackBtn onClick={() => goTo("tabs", "back")} />}
+              />
+            </div>
           )}
         </div>
 
@@ -370,7 +401,7 @@ export default function MainLayout() {
               setMobileTab(tab);
               setMobileScreen("tabs");
             }}
-            onCreate={() => setModal("createServer")}
+            onCreate={() => setModal("hub")}
           />
         )}
 

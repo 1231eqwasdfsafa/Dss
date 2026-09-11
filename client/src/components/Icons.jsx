@@ -158,6 +158,27 @@ export const Hexagon = (p) => (
   </Svg>
 );
 
+export const Grid = (p) => (
+  <Svg {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+  </Svg>
+);
+
+export const Megaphone = (p) => (
+  <Svg {...p}>
+    <path d="M3 11v2a2 2 0 002 2h1l2 6h2l-1-6h4l6 4V5l-6 4H6a2 2 0 00-2 2z" />
+  </Svg>
+);
+
+export const ChevronRight = (p) => (
+  <Svg {...p}>
+    <path d="M9 18l6-6-6-6" />
+  </Svg>
+);
+
 export const ArrowLeft = (p) => (
   <Svg {...p}>
     <path d="M19 12H5M12 19l-7-7 7-7" />

@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "../store/appStore";
 import { Search, Users } from "./Icons.jsx";
+import { gradientFor } from "../lib/colors";
 
 const CATEGORIES = ["Sohbet", "Oyun", "Sanat", "Muzik", "Teknoloji", "Egitim", "Diger"];
-
-// Deterministic, name-derived gradient so featured cards get some visual
-// weight without needing uploaded server art.
-function gradientFor(name) {
-  let hash = 0;
-  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) % 360;
-  return `linear-gradient(135deg, hsl(${hash} 35% 18%), hsl(${(hash + 40) % 360} 30% 12%))`;
-}
 
 export default function DiscoverPage({ onJoined }) {
   const { discoverResults, fetchDiscover, joinServer } = useAppStore();

@@ -92,3 +92,31 @@ body {
 .animate-bar-grow {
   animation: bar-grow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Mobile drill-down screen transitions (servers -> channels -> chat, and back) */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-28px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
