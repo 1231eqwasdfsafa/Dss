@@ -28,7 +28,18 @@ router.get("/activity", (_req, res) => {
 router.get("/:userId", async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.params.userId } });
   if (!user) return res.status(404).json({ error: "Kullanici bulunamadi" });
-  res.json({ user: publicProfile(user) });
+
+  let mutualServerCount = 0;
+  if (req.params.userId !== req.userId) {
+    const [mine, theirs] = await Promise.all([
+      prisma.serverMember.findMany({ where: { userId: req.userId }, select: { serverId: true } }),
+      prisma.serverMember.findMany({ where: { userId: req.params.userId }, select: { serverId: true } }),
+    ]);
+    const theirServerIds = new Set(theirs.map((m) => m.serverId));
+    mutualServerCount = mine.filter((m) => theirServerIds.has(m.serverId)).length;
+  }
+
+  res.json({ user: { ...publicProfile(user), mutualServerCount } });
 });
 
 export default router;

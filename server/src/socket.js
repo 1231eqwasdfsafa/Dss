@@ -110,13 +110,15 @@ export function initSocket(httpServer, clientOrigin) {
     // "Currently listening" activity — manually entered (no real Spotify
     // OAuth is wired up), broadcast the same way presence is: globally, to
     // whoever has this user's profile card open.
-    socket.on("activity:start", ({ track, artist, albumArt, trackUrl } = {}) => {
+    socket.on("activity:start", ({ track, artist, albumArt, trackUrl, duration } = {}) => {
       if (!track?.trim() || !artist?.trim()) return;
+      const durationSec = Number(duration);
       const activity = {
         track: track.trim().slice(0, 120),
         artist: artist.trim().slice(0, 120),
         albumArt: albumArt?.trim().slice(0, 500) || null,
         trackUrl: trackUrl?.trim().slice(0, 500) || null,
+        duration: Number.isFinite(durationSec) && durationSec > 0 ? Math.min(durationSec, 3600) : null,
         startedAt: Date.now(),
       };
       setActivity(userId, activity);

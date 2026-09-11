@@ -154,6 +154,7 @@ router.get("/:serverId/members", async (req, res) => {
       customStatus: m.user.customStatus,
       role: m.role,
       nickname: m.nickname,
+      joinedAt: m.joinedAt,
     })),
   });
 });

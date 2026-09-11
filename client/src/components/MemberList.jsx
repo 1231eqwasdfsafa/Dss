@@ -7,10 +7,11 @@ const GROUPS = [
   { role: "MEMBER", label: "Uyeler" },
 ];
 
-export default function MemberList({ open, onClose, members, presence, onOpenProfile }) {
+export default function MemberList({ open, onClose, members, presence, serverName, onOpenProfile }) {
   const withPresence = members.map((m) => ({ ...m, status: presence[m.id] || m.status }));
   const online = withPresence.filter((m) => m.status !== "OFFLINE");
   const offline = withPresence.filter((m) => m.status === "OFFLINE");
+  const openMemberProfile = (m) => onOpenProfile(m.id, { role: m.role, joinedAt: m.joinedAt, serverName });
 
   return (
     <>
@@ -40,7 +41,7 @@ export default function MemberList({ open, onClose, members, presence, onOpenPro
                 {g.label} — <span className="mono">{group.length}</span>
               </div>
               {group.map((m) => (
-                <MemberRow key={m.id} member={m} onClick={() => onOpenProfile(m.id)} />
+                <MemberRow key={m.id} member={m} onClick={() => openMemberProfile(m)} />
               ))}
             </div>
           );
@@ -52,7 +53,7 @@ export default function MemberList({ open, onClose, members, presence, onOpenPro
               Cevrimdisi — <span className="mono">{offline.length}</span>
             </div>
             {offline.map((m) => (
-              <MemberRow key={m.id} member={m} muted onClick={() => onOpenProfile(m.id)} />
+              <MemberRow key={m.id} member={m} muted onClick={() => openMemberProfile(m)} />
             ))}
           </div>
         )}

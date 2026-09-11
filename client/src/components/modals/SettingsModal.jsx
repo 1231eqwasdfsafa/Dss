@@ -12,6 +12,24 @@ import { DEMO_MODE } from "../../lib/demo";
 const AVATAR_COLORS = ["#5865F2", "#EB459E", "#57F287", "#FEE75C", "#ED4245", "#00C2FF", "#9B59B6", "#f97316"];
 const BANNER_COLORS = ["#4C3B2C", "#33281D", "#3F3125", "#2A2118", "#548F65", "#B36F3A", "#5865F2", "#9B59B6"];
 
+function formatMmSs(totalSec) {
+  const s = Math.max(0, Math.floor(totalSec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+// Accepts "3:32" or a plain seconds count; returns seconds, or null if unparseable.
+function parseMmSs(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.includes(":")) {
+    const [m, s] = trimmed.split(":").map(Number);
+    if (Number.isFinite(m) && Number.isFinite(s)) return m * 60 + s;
+    return null;
+  }
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : null;
+}
+
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -39,6 +57,7 @@ export default function SettingsModal({ onClose }) {
   const [artist, setArtist] = useState(activity?.artist || "");
   const [albumArt, setAlbumArt] = useState(activity?.albumArt || "");
   const [trackUrl, setTrackUrl] = useState(activity?.trackUrl || "");
+  const [duration, setDuration] = useState(activity?.duration ? formatMmSs(activity.duration) : "");
 
   const [uploading, setUploading] = useState(null); // 'avatar' | 'banner' | null
   const [saving, setSaving] = useState(false);
@@ -80,12 +99,13 @@ export default function SettingsModal({ onClose }) {
 
   function publishActivity() {
     if (!track.trim() || !artist.trim()) return;
-    getSocket()?.emit("activity:start", { track, artist, albumArt, trackUrl });
+    getSocket()?.emit("activity:start", { track, artist, albumArt, trackUrl, duration: parseMmSs(duration) });
   }
 
   function stopActivity() {
     setTrack("");
     setArtist("");
+    setDuration("");
     setAlbumArt("");
     setTrackUrl("");
     getSocket()?.emit("activity:stop");
@@ -196,6 +216,7 @@ export default function SettingsModal({ onClose }) {
           <input value={artist} onChange={(e) => setArtist(e.target.value)} className="input" placeholder="Sanatci" maxLength={120} />
           <input value={albumArt} onChange={(e) => setAlbumArt(e.target.value)} className="input" placeholder="Albüm kapagi URL (opsiyonel)" />
           <input value={trackUrl} onChange={(e) => setTrackUrl(e.target.value)} className="input" placeholder="Sarki linki (opsiyonel)" />
+          <input value={duration} onChange={(e) => setDuration(e.target.value)} className="input" placeholder="Sarki suresi, orn. 3:32 (opsiyonel)" />
         </div>
         <div className="flex gap-2 mt-3">
           <button onClick={publishActivity} disabled={!track.trim() || !artist.trim()} className="btn-secondary flex-1">

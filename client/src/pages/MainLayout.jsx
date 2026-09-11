@@ -82,7 +82,15 @@ export default function MainLayout() {
   const [membersOpen, setMembersOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState(null); // messageId being reported
   const [profileUserId, setProfileUserId] = useState(null); // user whose profile card is open
-  const openProfile = (userId) => setProfileUserId(userId);
+  const [profileContext, setProfileContext] = useState(null); // { role, joinedAt, serverName } when opened from a server's member list
+  const openProfile = (userId, context = null) => {
+    setProfileUserId(userId);
+    setProfileContext(context);
+  };
+  const closeProfile = () => {
+    setProfileUserId(null);
+    setProfileContext(null);
+  };
 
   // Mobile-only navigation stack: which tab's root list is showing, and how
   // deep the drill-down goes (list -> channel list -> chat), independent of
@@ -318,13 +326,14 @@ export default function MainLayout() {
       {profileUserId && (
         <ProfileCard
           userId={profileUserId}
-          onClose={() => setProfileUserId(null)}
+          context={profileContext}
+          onClose={closeProfile}
           onStartDm={(userId) => {
             handleStartDm({ userId });
-            setProfileUserId(null);
+            closeProfile();
           }}
           onEditSelf={() => {
-            setProfileUserId(null);
+            closeProfile();
             setModal("settings");
           }}
         />
@@ -433,7 +442,7 @@ export default function MainLayout() {
                 headerLeft={<BackBtn onClick={() => goTo("tabs", "back")} />}
               />
               {activeServer && (
-                <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onOpenProfile={openProfile} />
+                <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} serverName={activeServer?.name} onOpenProfile={openProfile} />
               )}
             </div>
           )}
@@ -541,7 +550,7 @@ export default function MainLayout() {
           )}
 
           {view === "server" && activeServer && (
-            <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} onOpenProfile={openProfile} />
+            <MemberList open={membersOpen} onClose={() => setMembersOpen(false)} members={members} presence={presence} serverName={activeServer?.name} onOpenProfile={openProfile} />
           )}
         </div>
       )}
