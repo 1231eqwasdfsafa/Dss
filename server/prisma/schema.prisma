@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite has no native enum support in Prisma; these are validated in app code.
+// Role: OWNER | ADMIN | MEMBER
+// ChannelType: TEXT | VOICE
+// Status: ONLINE | IDLE | DND | OFFLINE
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  discriminator String   @default("0001")
+  email         String   @unique
+  password      String
+  avatarColor   String   @default("#5865F2")
+  status        String   @default("OFFLINE")
+  customStatus  String?
+  createdAt     DateTime @default(now())
+
+  memberships    ServerMember[]
+  messages       Message[]
+  ownedServers   Server[]        @relation("ServerOwner")
+  reactions      Reaction[]
+  dmMembers      DMMember[]
+
+  @@index([username])
+}
+
+model Server {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String?
+  inviteCode String  @unique
+  ownerId   String
+  owner     User     @relation("ServerOwner", fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+
+  members  ServerMember[]
+  channels Channel[]
+}
+
+model ServerMember {
+  id       String   @id @default(cuid())
+  userId   String
+  serverId String
+  role     String   @default("MEMBER")
+  nickname String?
+  joinedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serverId])
+}
+
+model Channel {
+  id        String      @id @default(cuid())
+  name      String
+  type      String      @default("TEXT")
+  topic     String?
+  position  Int         @default(0)
+  serverId  String
+  server    Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  messages Message[]
+}
+
+model DMChannel {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  members   DMMember[]
+  messages  Message[]
+}
+
+model DMMember {
+  id          String    @id @default(cuid())
+  userId      String
+  dmChannelId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dmChannel   DMChannel @relation(fields: [dmChannelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dmChannelId])
+}
+
+model Message {
+  id          String     @id @default(cuid())
+  content     String
+  edited      Boolean    @default(false)
+  attachment  String?
+  authorId    String
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  channelId   String?
+  channel     Channel?   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  dmChannelId String?
+  dmChannel   DMChannel? @relation(fields: [dmChannelId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+
+  reactions Reaction[]
+
+  @@index([channelId])
+  @@index([dmChannelId])
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  userId    String
+  messageId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId, emoji])
+}
