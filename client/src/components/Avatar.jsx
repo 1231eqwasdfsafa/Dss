@@ -31,7 +31,7 @@ export default function Avatar({ username, color, url, status, size = 40, showSt
       ) : (
         <div
           className={`flex items-center justify-center font-bold text-ink select-none ${shapeClass}`}
-          style={{ width: size, height: size, backgroundColor: color || "#5865F2", fontSize: size * 0.42 }}
+          style={{ width: size, height: size, backgroundColor: color || "#6D5EF0", fontSize: size * 0.42 }}
         >
           {letter}
         </div>

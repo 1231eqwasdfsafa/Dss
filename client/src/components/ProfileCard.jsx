@@ -95,7 +95,7 @@ export default function ProfileCard({ userId, context, fallback, onClose, onStar
           </div>
         ) : (
           <>
-            <div className="relative h-24 shrink-0" style={{ backgroundColor: profile.bannerColor || "#4C3B2C" }}>
+            <div className="relative h-24 shrink-0" style={{ backgroundColor: profile.bannerColor || "#393E56" }}>
               {profile.bannerUrl && (
                 <img src={resolveAsset(profile.bannerUrl)} alt="" className="absolute inset-0 w-full h-full object-cover" />
               )}

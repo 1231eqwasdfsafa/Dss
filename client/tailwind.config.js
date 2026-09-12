@@ -5,46 +5,54 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Warm mocha/terracotta dark scale. Kept the old "base-NNN" naming
-        // so existing component classes didn't need renaming, only remapping.
+        // Cool graphite/indigo dark scale. Kept the old "base-NNN" naming so
+        // existing component classes didn't need renaming, only remapping.
         base: {
-          900: "#18130F", // ground
-          850: "#1C1611",
-          800: "#231C15", // surface / panel
-          750: "#2A2118",
-          700: "#33281D", // hover surface / inputs
-          600: "#3F3125", // borders
-          500: "#4C3B2C", // stronger borders / dividers
+          900: "#0A0B12", // ground
+          850: "#0E1018",
+          800: "#14161F", // surface / panel
+          750: "#191C28",
+          700: "#20232F", // hover surface / inputs
+          600: "#2B2F41", // borders
+          500: "#393E56", // stronger borders / dividers
         },
-        ink: "#F2E9DE",
+        ink: "#F2F3FA",
+        // "amber" is the primary-accent token name kept from the previous
+        // palette (avoids renaming it across every component); the color
+        // itself is now the brand indigo/violet, reserved for primary
+        // calls-to-action, notifications, and the bot hub.
         amber: {
-          DEFAULT: "#D98A4C",
-          hover: "#E6A268",
-          soft: "#B36F3A",
+          DEFAULT: "#6D5EF0",
+          hover: "#8577FF",
+          soft: "#4E41C9",
         },
         teal: {
-          DEFAULT: "#6BAE7E",
-          soft: "#548F65",
+          DEFAULT: "#2FD9E8",
+          soft: "#159FB0",
         },
-        warn: "#C2604A",
+        warn: "#F2495C",
         // Presence colors
-        online: "#6BAE7E",
-        idle: "#B08B5C",
-        dnd: "#C2604A",
+        online: "#3ED598",
+        idle: "#F5B94D",
+        dnd: "#F2495C",
         // Legacy alias so any missed spot still renders sanely instead of
         // Tailwind silently dropping the class.
         accent: {
-          DEFAULT: "#D98A4C",
-          hover: "#E6A268",
-          soft: "#B36F3A",
+          DEFAULT: "#6D5EF0",
+          hover: "#8577FF",
+          soft: "#4E41C9",
         },
       },
       fontFamily: {
         sans: ["'Space Grotesk'", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
       },
+      backgroundImage: {
+        brand: "linear-gradient(135deg, #6D5EF0 0%, #2FD9E8 100%)",
+      },
       boxShadow: {
-        panel: "0 8px 28px rgba(0,0,0,0.45)",
+        panel: "0 8px 28px rgba(0,0,0,0.5)",
+        glow: "0 0 0 1px rgba(109,94,240,0.35), 0 10px 30px -6px rgba(109,94,240,0.55)",
       },
       animation: {
         "pulse-fast": "pulse 1s ease-in-out infinite",

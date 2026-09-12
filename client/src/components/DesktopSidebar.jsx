@@ -37,6 +37,10 @@ export default function DesktopSidebar({
   return (
     <div className="hidden md:flex w-80 bg-base-800 shrink-0 border-r border-base-900/60">
       <div className="w-[68px] shrink-0 border-r border-base-900/60 flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-none">
+        <div className="w-9 h-9 shrink-0 rounded-xl bg-brand flex items-center justify-center font-extrabold text-white text-sm mb-1 select-none">
+          N
+        </div>
+
         <RailIcon active={view === "dm"} onClick={onSelectHome} label="Direkt Mesajlar">
           <MessageCircle size={19} />
         </RailIcon>
@@ -133,7 +137,7 @@ function RailIcon({ children, active, onClick, label, variant = "solid", gradien
       <button
         onClick={onClick}
         title={label}
-        className="w-12 h-12 shrink-0 rounded-full bg-amber text-base-900 shadow-panel flex items-center justify-center hover:bg-amber-hover hover:rounded-2xl transition-all duration-200"
+        className="w-12 h-12 shrink-0 rounded-full bg-brand text-white shadow-glow flex items-center justify-center hover:brightness-110 hover:rounded-2xl transition-all duration-200"
       >
         {children}
       </button>
@@ -147,7 +151,7 @@ function RailIcon({ children, active, onClick, label, variant = "solid", gradien
         className={`w-12 h-12 flex items-center justify-center font-bold text-sm text-ink shrink-0 transition-all duration-200 ${
           active ? "rounded-2xl" : "rounded-full hover:rounded-2xl"
         }`}
-        style={{ background: gradient || "#3F3125" }}
+        style={{ background: gradient || "#393E56" }}
       >
         {children}
       </span>

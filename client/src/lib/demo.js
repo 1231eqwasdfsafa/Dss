@@ -9,7 +9,7 @@ export const demoUser = {
   username: "sen",
   discriminator: "0001",
   email: "demo@nexus.local",
-  avatarColor: "#5865F2",
+  avatarColor: "#6D5EF0",
   status: "ONLINE",
   customStatus: "Demo modunda geziniyor",
 };
@@ -45,11 +45,11 @@ export const demoServers = [
 
 export const demoMembers = {
   "demo-server-1": [
-    { id: "demo-user", username: "sen", discriminator: "0001", avatarColor: "#5865F2", status: "ONLINE", role: "OWNER", customStatus: "Demo modunda geziniyor" },
-    { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EB459E", status: "ONLINE", role: "ADMIN", customStatus: "Kod yaziyor" },
-    { id: "demo-bora", username: "bora", discriminator: "1190", avatarColor: "#57F287", status: "IDLE", role: "MEMBER", customStatus: null },
-    { id: "demo-ceren", username: "ceren", discriminator: "7734", avatarColor: "#FEE75C", status: "DND", role: "MEMBER", customStatus: "Toplantida" },
-    { id: "demo-deniz", username: "deniz", discriminator: "3302", avatarColor: "#9B59B6", status: "OFFLINE", role: "MEMBER", customStatus: null },
+    { id: "demo-user", username: "sen", discriminator: "0001", avatarColor: "#6D5EF0", status: "ONLINE", role: "OWNER", customStatus: "Demo modunda geziniyor" },
+    { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EC4899", status: "ONLINE", role: "ADMIN", customStatus: "Kod yaziyor" },
+    { id: "demo-bora", username: "bora", discriminator: "1190", avatarColor: "#3ED598", status: "IDLE", role: "MEMBER", customStatus: null },
+    { id: "demo-ceren", username: "ceren", discriminator: "7734", avatarColor: "#F5B94D", status: "DND", role: "MEMBER", customStatus: "Toplantida" },
+    { id: "demo-deniz", username: "deniz", discriminator: "3302", avatarColor: "#A78BFA", status: "OFFLINE", role: "MEMBER", customStatus: null },
   ],
 };
 
@@ -62,7 +62,7 @@ export const demoMessages = {
       attachment: null,
       createdAt: minutesAgo(40),
       channelId: "demo-ch-genel",
-      author: { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EB459E" },
+      author: { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EC4899" },
       reactions: [{ emoji: "👋", count: 2, userIds: ["demo-bora", "demo-ceren"] }],
     },
     {
@@ -72,7 +72,7 @@ export const demoMessages = {
       attachment: null,
       createdAt: minutesAgo(35),
       channelId: "demo-ch-genel",
-      author: { id: "demo-bora", username: "bora", discriminator: "1190", avatarColor: "#57F287" },
+      author: { id: "demo-bora", username: "bora", discriminator: "1190", avatarColor: "#3ED598" },
       reactions: [],
     },
     {
@@ -82,7 +82,7 @@ export const demoMessages = {
       attachment: null,
       createdAt: minutesAgo(2),
       channelId: "demo-ch-genel",
-      author: { id: "demo-user", username: "sen", discriminator: "0001", avatarColor: "#5865F2" },
+      author: { id: "demo-user", username: "sen", discriminator: "0001", avatarColor: "#6D5EF0" },
       reactions: [{ emoji: "🎉", count: 1, userIds: ["demo-alice"] }],
     },
   ],
@@ -94,14 +94,14 @@ export const demoMessages = {
       attachment: null,
       createdAt: minutesAgo(120),
       channelId: "demo-ch-random",
-      author: { id: "demo-ceren", username: "ceren", discriminator: "7734", avatarColor: "#FEE75C" },
+      author: { id: "demo-ceren", username: "ceren", discriminator: "7734", avatarColor: "#F5B94D" },
       reactions: [],
     },
   ],
 };
 
 export const demoDms = [
-  { id: "demo-dm-1", user: { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EB459E", status: "ONLINE" } },
+  { id: "demo-dm-1", user: { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EC4899", status: "ONLINE" } },
 ];
 
 export const demoDmMessages = {
@@ -113,7 +113,7 @@ export const demoDmMessages = {
       attachment: null,
       createdAt: minutesAgo(15),
       dmChannelId: "demo-dm-1",
-      author: { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EB459E" },
+      author: { id: "demo-alice", username: "alice", discriminator: "4821", avatarColor: "#EC4899" },
       reactions: [],
     },
   ],

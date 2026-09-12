@@ -3,7 +3,7 @@
 export function gradientFor(name) {
   let hash = 0;
   for (const ch of name || "") hash = (hash * 31 + ch.charCodeAt(0)) % 360;
-  return `linear-gradient(135deg, hsl(${hash} 35% 22%), hsl(${(hash + 40) % 360} 30% 14%))`;
+  return `linear-gradient(135deg, hsl(${hash} 62% 42%), hsl(${(hash + 45) % 360} 55% 24%))`;
 }
 
 export function initials(name) {

@@ -9,8 +9,8 @@ import { resolveAsset, uploadFile } from "../../lib/uploads";
 import { getSocket } from "../../lib/socket";
 import { DEMO_MODE } from "../../lib/demo";
 
-const AVATAR_COLORS = ["#5865F2", "#EB459E", "#57F287", "#FEE75C", "#ED4245", "#00C2FF", "#9B59B6", "#f97316"];
-const BANNER_COLORS = ["#4C3B2C", "#33281D", "#3F3125", "#2A2118", "#548F65", "#B36F3A", "#5865F2", "#9B59B6"];
+const AVATAR_COLORS = ["#6D5EF0", "#2FD9E8", "#F2495C", "#3ED598", "#F5B94D", "#EC4899", "#38BDF8", "#A78BFA"];
+const BANNER_COLORS = ["#393E56", "#20232F", "#14161F", "#0E1018", "#4E41C9", "#159FB0", "#6D5EF0", "#A78BFA"];
 
 function formatMmSs(totalSec) {
   const s = Math.max(0, Math.floor(totalSec));
@@ -175,7 +175,7 @@ export default function SettingsModal({ onClose }) {
             <button
               key={c}
               onClick={() => setAvatarColor(c)}
-              className={`w-8 h-8 rounded-full border-2 ${avatarColor === c ? "border-white" : "border-transparent"}`}
+              className={`w-8 h-8 rounded-full border-2 ${avatarColor === c ? "border-white" : "border-white/10"}`}
               style={{ backgroundColor: c }}
             />
           ))}
@@ -189,7 +189,7 @@ export default function SettingsModal({ onClose }) {
             <button
               key={c}
               onClick={() => setBannerColor(c)}
-              className={`w-8 h-8 rounded-lg border-2 ${bannerColor === c ? "border-white" : "border-transparent"}`}
+              className={`w-8 h-8 rounded-lg border-2 ${bannerColor === c ? "border-white" : "border-white/10"}`}
               style={{ backgroundColor: c }}
             />
           ))}
