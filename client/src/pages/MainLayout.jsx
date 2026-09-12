@@ -509,6 +509,7 @@ export default function MainLayout() {
         onCreate={() => setModal("createServer")}
         onJoin={() => setModal("joinServer")}
         onDiscover={selectDiscover}
+        onOpenHub={() => setModal("hub")}
         onOpenSettings={() => setModal("settings")}
         onOpenProfile={() => openProfile(user.id)}
       />

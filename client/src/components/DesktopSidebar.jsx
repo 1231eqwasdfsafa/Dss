@@ -30,6 +30,7 @@ export default function DesktopSidebar({
   onCreate,
   onJoin,
   onDiscover,
+  onOpenHub,
   onOpenSettings,
   onOpenProfile,
 }) {
@@ -38,6 +39,10 @@ export default function DesktopSidebar({
       <div className="w-[68px] shrink-0 border-r border-base-900/60 flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-none">
         <RailIcon active={view === "dm"} onClick={onSelectHome} label="Direkt Mesajlar">
           <MessageCircle size={19} />
+        </RailIcon>
+
+        <RailIcon onClick={onOpenHub} label="Hub" variant="hub">
+          <Plus size={20} strokeWidth={2.5} />
         </RailIcon>
 
         <div className="w-7 h-px bg-base-600 my-0.5 shrink-0" />
@@ -84,8 +89,18 @@ export default function DesktopSidebar({
             />
           ) : view === "server" ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-              <p className="text-sm text-gray-500 mb-1">Henuz bir sunucun yok.</p>
-              <p className="text-xs text-gray-600">Soldan yeni bir sunucu kur ya da davet koduyla katil.</p>
+              <div className="w-14 h-14 rounded-2xl bg-base-750 border border-base-700 flex items-center justify-center mb-3">
+                <UserPlus size={22} className="text-gray-500" />
+              </div>
+              <p className="text-sm text-gray-500 mb-4">Henuz bir sunucun yok.</p>
+              <div className="flex flex-col gap-1 w-full max-w-[200px]">
+                <button onClick={onCreate} className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl hover:bg-base-750 text-teal text-sm font-medium">
+                  <Plus size={16} /> Sunucu Olustur
+                </button>
+                <button onClick={onJoin} className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl hover:bg-base-750 text-teal text-sm font-medium">
+                  <UserPlus size={16} /> Davet Koduyla Katil
+                </button>
+              </div>
             </div>
           ) : null}
         </div>
@@ -113,6 +128,18 @@ function RailIcon({ children, active, onClick, label, variant = "solid", gradien
     );
   }
 
+  if (variant === "hub") {
+    return (
+      <button
+        onClick={onClick}
+        title={label}
+        className="w-12 h-12 shrink-0 rounded-full bg-amber text-base-900 shadow-panel flex items-center justify-center hover:bg-amber-hover hover:rounded-2xl transition-all duration-200"
+      >
+        {children}
+      </button>
+    );
+  }
+
   return (
     <button onClick={onClick} title={label} className="relative flex items-center justify-center w-full shrink-0">
       <span className={`absolute left-0 bg-teal rounded-r-full transition-all duration-200 ${active ? "h-8 w-1" : "h-2 w-1 opacity-0"}`} />
@@ -120,7 +147,7 @@ function RailIcon({ children, active, onClick, label, variant = "solid", gradien
         className={`w-12 h-12 flex items-center justify-center font-bold text-sm text-ink shrink-0 transition-all duration-200 ${
           active ? "rounded-2xl" : "rounded-full hover:rounded-2xl"
         }`}
-        style={{ background: gradient }}
+        style={{ background: gradient || "#3F3125" }}
       >
         {children}
       </span>
